@@ -1,0 +1,15 @@
+version: '3.4'
+
+services:
+  python-ai:
+      image: python-ai
+      stdin_open: true
+      tty: true
+      build:
+          context: ../
+          dockerfile: build/Dockerfile
+      volumes:
+        - ../src:/satiscribble-ai/src        
+        - ../tests:/satiscribble-ai/tests
+      ports:
+        - ${AI_HOST_PORT}:${AI_SERVICE_PORT}
