@@ -13,3 +13,5 @@ services:
         - ../tests:/satiscribble-ai/tests
       ports:
         - ${AI_HOST_PORT}:${AI_SERVICE_PORT}
+      env_file:
+        - .env
