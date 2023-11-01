@@ -21,7 +21,7 @@ This section will explain the file structure of this repository.
 ├── src                            <- base folder containing all the main code for each service
 │   ├── utils                      <- folder containing any utils file needed (eg. functions for database query etc)
 │   │
-│   ├── microservice 1             <- folder containing all python code required in microservice 1
+│   ├── helper                     <- folder containing all python code required in microservices
 │   │
 │   └── main.py                    <- main python file that consist of all the endpoints for the fastAPI
 │
