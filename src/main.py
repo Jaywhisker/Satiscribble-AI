@@ -154,7 +154,7 @@ async def TopicTracker(Talking: str):
     print("TopicTrackerQuery")
     openai.api_key = os.environ['OPENAI_API_KEY']
     query_message = [
-    {"role": "system", "content": "This is to be filled in"},
+    {"role": "system", "content": "You are a topictracker model. You do not have individuality, opinion or a personality. You can only reply in True or False. You will expect a list of sentences. Return true if the last sentence is coherent with the rest of the paragraph. Return False if the last sentence is not related to the rest of the paragraph."},
     ]
     user_input = {"role": "user", "content": Talking}
     query_message.append(user_input)
