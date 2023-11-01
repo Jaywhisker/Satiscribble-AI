@@ -10,6 +10,9 @@ import os
 from microservice.track_minutes import *
 from utils.createMongoDocument import initialiseMongoData
 
+os.environ['OPENAI_API_KEY'] = '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'
+
+
 
 app = FastAPI()
 
@@ -27,8 +30,6 @@ async def create_document():
 async def handle_track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_id:str, chat_history_id:str, abbreviation:str):
     response = await track_minutes(new_minutes, topic_title, topic_id, minutes_id, chat_history_id, abbreviation)
     return response
-
-
 
 # # Testing concurent calls
 # @app.get("/test")

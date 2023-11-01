@@ -26,13 +26,17 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
     mongoDB = MongoDBManager(ObjectId(minutes_id), ObjectId(chat_history_id))
     existing_minutes = mongoDB.read_MongoDB('minutes', False, topic_id, None)
     formatted_new_minutes =  formatTextMinutes(new_minutes, topic_id)
+
+    # 
+    newMinutesList = createContext(new_minutes)
+    existingAgenda = ['yes', 'no']
     
     if existing_minutes == None:
         # New topic block
         Topic, Agenda, Glossary = await asyncio.gather(
-                                                        TopicTracker(),
-                                                        AgendaTracker(),
-                                                        GlossaryDetector(),
+                                                        TopicTracker(newMinutesList),
+                                                        AgendaTracker(newMinutesList, existingAgenda),
+                                                        GlossaryDetector(newMinutesList,abbreviation),
                                                         mongoDB.update_topic_minutes(formatted_new_minutes, True, topic_id, topic_title),
                                                         #update chromaDB
                                                     )
@@ -49,9 +53,9 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
                 update_dict[sentenceID] = new_sentence
         
         Topic, Agenda, Glossary = await asyncio.gather(
-                                                        TopicTracker(),
-                                                        AgendaTracker(),
-                                                        GlossaryDetector(),
+                                                        TopicTracker(newMinutesList),
+                                                        AgendaTracker(newMinutesList, existingAgenda),
+                                                        GlossaryDetector(newMinutesList,abbreviation),
                                                         mongoDB.update_topic_minutes(update_dict, False, topic_id, topic_title),
                                                         #update chromaDB
                                                     )
