@@ -12,15 +12,13 @@ query_message = [
 
 app = FastAPI()
 
-
-# Normal endpount, what you will see if you head to there  and use a get response
+#testing normal endpoint
 @app.get("/")
 async def root():
-    return{"hello"}
+    return{"message": "hello world"}
 
 
 # Testing concurent calls
-
 @app.get("/test")
 async def root():
     post, comment, post2 = await asyncio.gather(gptResponse(Talking = "On October 26, 2023, a Quarterly Product Review meeting was held with attendees John Smith, Jane Doe, Alan Watts, Maria Garcia, and Liam Chen. John Smith began by commending the team on exceeding sales targets by 12% and acknowledging the positive customer feedback. Jane Doe presented a review of Product A, which remains a best-seller, though recent updates have caused minor user issues; a team is addressing these. Product B has seen a slight decline in sales, possibly due to competition and market saturation. Alan Watts highlighted a successful ad campaign on social media that resulted in a 15% boost in new customer acquisitions, but noted challenges in retaining younger demographics and expanding European market presence. Maria Garcia shared customer feedback, praising the company's swift support responses, but some were dissatisfied with the refund policy. She proposed a review of this policy. Liam Chen then pitched a new product idea targeting younger consumers, emphasizing partnerships with influencers. There was further discussion on budgeting concerns for the upcoming quarter, European market expansion strategies, and the value of regular customer feedback sessions. John wrapped up by emphasizing innovation and competitiveness. Notable action items include the release of patches for Product A by November 15, market research in Europe, and an HR-led workshop on customer relationship management. The next meeting is set for November 30, 2023."), function2(1), gptResponse2(Talking="Do not talk back to me as you are supposed to be silent during work. I dont care how you do it, when you do it. I want the summary to be 80 words or less or else I will unsubscribe from ChatGPT Plus. Put them into categories in needed but make it concise or else I will doubt in your abilities as an AI model. Do not talk back to me as you are supposed to be silent during work. Give me the summary as soon as possible or you will work overtime with no OT pay."))

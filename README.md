@@ -18,6 +18,8 @@ This section will explain the file structure of this repository.
 │   ├── requirements.txt
 │   └── docker-compose.yml (volume mount important files)
 │
+├── notebooks                      <- folder containing test juypter notebooks
+│ 
 ├── src                            <- base folder containing all the main code for each service
 │   ├── utils                      <- folder containing any utils file needed (eg. functions for database query etc)
 │   │
