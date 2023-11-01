@@ -2,8 +2,10 @@ import pymongo
 import os
 import datetime
 import asyncio
+from fastapi import HTTPException
 from bson import ObjectId
-from createMongoDocument import initialiseMongoData
+
+from utils.createMongoDocument import initialiseMongoData
 
 
 class MongoDBManager():
@@ -31,7 +33,7 @@ class MongoDBManager():
         """
 
         if collection_name != "minutes" and collection_name != "chatHistory":
-            raise Exception("Invalid Collection Name")
+            raise HTTPException(status_code=422,detail="Invalid Database Collection Name")
 
         elif collection_name == "minutes":
             if agenda:
@@ -52,7 +54,7 @@ class MongoDBManager():
             if chatHistory:
                 return chatHistory
             else:
-                raise Exception("Chat History Document does not exist")
+                raise HTTPException(status_code=422,detail="ChatHistory Document unfound in Database")
 
     
 
@@ -76,7 +78,7 @@ class MongoDBManager():
             update_query = {"$set": {"meetingDetails": new_data}}
 
         else:
-            raise Exception('Unaccepted input format for new data to update MongoDB')
+            raise HTTPException(status_code=422,detail="Invalid minutes input for updating")
 
         filter_query = {"_id": self.minutesID}      
         update = self.database.minutes.update_one(filter_query, update_query)
@@ -85,7 +87,7 @@ class MongoDBManager():
         elif update.acknowledged:
             return {'status': 'Same values, no update'}
         else:
-            raise Exception("Update failed")
+            raise HTTPException(status_code=422,detail="Updating Database Failed")
 
 
 
@@ -119,7 +121,7 @@ class MongoDBManager():
             update_operation = {"$push": {"topics": new_topic}}
             update = self.database.minutes.update_one(filter_query, update_operation)
             if not update.acknowledged:
-                raise Exception("Update minutes failed")
+                raise HTTPException(status_code=422,detail="Create topic in Database Failed")
 
         else:
             for sentence_id in update_list.keys():
@@ -165,7 +167,7 @@ class MongoDBManager():
                 update = self.database.minutes.update_one(filter_query, update_operation, array_filters=array_filters)
 
                 if not update.acknowledged:
-                    raise Exception("Update minutes failed")
+                    raise HTTPException(status_code=422,detail="Updating Database Failed")
 
         return {"status": 200}
 
@@ -192,11 +194,11 @@ class MongoDBManager():
 
         update = self.database.minutes.update_one(filter_query, update_operation)
         if not update.acknowledged:
-            raise Exception("Update minutes failed")
+            raise HTTPException(status_code=422,detail="Unable to delete topic")
 
         return {"status": 200}
 
-
+    
 
     async def update_chat_history(self, chat_history:dict, query_type:str):
         """
@@ -211,7 +213,7 @@ class MongoDBManager():
         """
         #chat_history should never have more than 2 keys!
         if query_type != 'document' and query_type != 'web':
-            raise Exception ('Invalid input of query type')
+            raise HTTPException(status_code=422,detail="Invalid Database Collection Name")
 
         filter_query = {"_id": self.chatHistoryID}
         update_operation = {
@@ -222,7 +224,7 @@ class MongoDBManager():
 
         update = self.database.chatHistory.update_one(filter_query, update_operation)
         if not update.acknowledged:
-            raise Exception("Update Chat History failed")
+            raise HTTPException(status_code=422,detail="Unable to update chat history")
 
         return {'status': 200}
 
@@ -239,7 +241,7 @@ class MongoDBManager():
                 dictionary of status
         """
         if query_type != 'document' and query_type != 'web':
-            raise Exception ('Invalid input of query type')
+            raise HTTPException(status_code=422,detail="Invalid Database Collection Name")
         
         filter_query = {"_id": self.chatHistoryID}
         update_operation = {
@@ -249,7 +251,7 @@ class MongoDBManager():
         }
         update = self.database.chatHistory.update_one(filter_query, update_operation)
         if not update.acknowledged:
-            raise Exception("Failed to clear chatHistory")
+            raise HTTPException(status_code=422,detail="Unable to clear chat history")
 
         return {'status': 200}
 
@@ -267,10 +269,10 @@ class MongoDBManager():
                 dictionary of status
         """
         if collection_name != 'minutes' and collection_name != 'chatHistory':
-            raise Exception("Invalid collection name")
+            raise HTTPException(status_code=422,detail="Invalid Database Collection Name")
         result = self.database[collection_name].delete_one({'_id': ObjectId(document_id)})
         if result.deleted_count != 1:
-            raise Exception("Unable to delete document")
+            raise HTTPException(status_code=422,detail="Unable to delete document")
         
         return {"status": 200}
 
@@ -287,7 +289,7 @@ class MongoDBManager():
                 dictionary of status
         """
         if collection_name != 'minutes' and collection_name != 'chatHistory':
-            raise Exception("Invalid collection name")
+            raise HTTPException(status_code=422,detail="Invalid Database Collection Name")
 
         result = self.database[collection_name].delete_many({})
         return {"status": 200}
@@ -296,72 +298,72 @@ class MongoDBManager():
 
 
 
-async def test():
+# async def test():
 
-    document_ids = initialiseMongoData()
+#     document_ids = initialiseMongoData()
 
-    mongo = MongoDBManager(document_ids["minutesID"], document_ids["chatHistoryID"])
-    new_data_agenda = ['create design system', 'create web experiment']
-    new_data_meeting_details = {
-        "date": datetime.datetime.now(),
-        "location": "studio",
-        "attendees": ['hn', 'jx', 'yl', 'wx']
-    }
+#     mongo = MongoDBManager(document_ids["minutesID"], document_ids["chatHistoryID"])
+#     new_data_agenda = ['create design system', 'create web experiment']
+#     new_data_meeting_details = {
+#         "date": datetime.datetime.now(),
+#         "location": "studio",
+#         "attendees": ['hn', 'jx', 'yl', 'wx']
+#     }
 
-    new_topic_update = {'00': 'bulletpoint1', '01': 'bulletpoint2'}
-    append_topic_update = {'02': 'bulletpoint3'}
-    replace_topic_update = {'01': 'new bulletpoint2', '03': 'bulletpoint4', '03': 'new bulletpoint4'}
+#     new_topic_update = {'00': 'bulletpoint1', '01': 'bulletpoint2'}
+#     append_topic_update = {'02': 'bulletpoint3'}
+#     replace_topic_update = {'01': 'new bulletpoint2', '03': 'bulletpoint4', '03': 'new bulletpoint4'}
 
-    try:
+    # try:
         
-        result = await mongo.update_agenda_meeting(new_data_agenda, True)
-        print(result)
-        result = await mongo.update_agenda_meeting(new_data_meeting_details, False)
-        print(result)
+        # result = await mongo.update_agenda_meeting(new_data_agenda, True)
+        # print(result)
+        # result = await mongo.update_agenda_meeting(new_data_meeting_details, False)
+        # print(result)
 
-        result = await mongo.update_topic_minutes(new_topic_update, True, '0', None)
-        print(result)
-        result = await mongo.update_topic_minutes(append_topic_update, False, '0', None)
-        print(result)
-        result = await mongo.update_topic_minutes(replace_topic_update, False, '0', None)
-        print(result)
+        # result = await mongo.update_topic_minutes(new_topic_update, True, '0', None)
+        # print(result)
+        # result = await mongo.update_topic_minutes(append_topic_update, False, '0', None)
+        # print(result)
+        # result = await mongo.update_topic_minutes(replace_topic_update, False, '0', None)
+        # print(result)
 
-        result = await mongo.update_chat_history({'user': "what is the topic of work?",'assistant': "The topic can be found in ..."}, 'document')
-        print(result)
-        result = await mongo.update_chat_history({'user': "what about this?",'assistant': "The topic is about ..."}, 'document')
-        print(result)
-        result = await mongo.update_chat_history({'user': "what is 1+1",'assistant': "3"}, 'web')
-        print(result)
+        # result = await mongo.update_chat_history({'user': "what is the topic of work?",'assistant': "The topic can be found in ..."}, 'document')
+        # print(result)
+        # result = await mongo.update_chat_history({'user': "what about this?",'assistant': "The topic is about ..."}, 'document')
+        # print(result)
+        # result = await mongo.update_chat_history({'user': "what is 1+1",'assistant': "3"}, 'web')
+        # print(result)
 
-        read_agenda = mongo.read_MongoDB('minutes', True, None, None)
-        read_topic = mongo.read_MongoDB('minutes', False, '0', None)
-        read_document_history = mongo.read_MongoDB('chatHistory', False, None, 'document')
-        read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
-        print(read_agenda, read_topic, read_document_history, read_web_history)
+        # read_agenda = mongo.read_MongoDB('minutes', True, None, None)
+        # read_topic = mongo.read_MongoDB('minutes', False, '0', None)
+        # read_document_history = mongo.read_MongoDB('chatHistory', False, None, 'document')
+        # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
+        # print(read_agenda, read_topic, read_document_history, read_web_history)
 
-        result = mongo.clear_chat_history('web')
-        print(result)
-        read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
-        print(read_web_history)
+        # result = mongo.clear_chat_history('web')
+        # print(result)
+        # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
+        # print(read_web_history)
 
-        result = mongo.delete_topic('0')
-        print(result)
-        read_topic = mongo.read_MongoDB('minutes', False, '0', None)
-        print(read_topic)
+        # result = mongo.delete_topic('0')
+        # print(result)
+        # read_topic = mongo.read_MongoDB('minutes', False, '0', None)
+        # print(read_topic)
 
-        result = mongo.delete_document(document_ids["minutesID"], 'minutes')
-        print(result)
+        # result = mongo.delete_document(document_ids["minutesID"], 'minutes')
+        # print(result)
 
-        result = mongo.delete_all_documents('chatHistory')
-        print(result)
+        # result = mongo.delete_all_documents('chatHistory')
+        # print(result)
 
-        result = mongo.delete_all_documents('minutes')
-        print(result)
+        # result = mongo.delete_all_documents('minutes')
+        # print(result)
 
-    except Exception as e:
-        print(f"Error: {e}")
+    # except Exception as e:
+    #     print(f"Error: {e}")
 
-if __name__ == "__main__":
-    asyncio.run(test())
+# if __name__ == "__main__":
+#     asyncio.run(test())
 
 
