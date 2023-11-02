@@ -10,7 +10,6 @@ import os
 from microservice.track_minutes import *
 from utils.createMongoDocument import initialiseMongoData
 
-os.environ['OPENAI_API_KEY'] = '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'
 
 
 

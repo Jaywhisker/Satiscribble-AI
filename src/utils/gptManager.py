@@ -4,7 +4,6 @@ import string
 
 # UHHHH should I use OS?
 
-os.environ['OPENAI_API_KEY'] = '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'
 
 
 async def TopicTracker(context: list):
