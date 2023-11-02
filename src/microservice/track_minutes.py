@@ -29,7 +29,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
 
     # 
     newMinutesList = createContext(new_minutes)
-    existingAgenda = ['yes', 'no']
+    existingAgenda = (mongoDB.read_MongoDB('minutes', True, None, None)).agenda
     
     if existing_minutes == None:
         # New topic block
