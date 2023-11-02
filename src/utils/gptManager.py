@@ -2,10 +2,6 @@ import openai
 import os
 import string
 
-# UHHHH should I use OS?
-
-
-
 async def TopicTracker(context: list):
     """
     Return True or False on whether the current sentence is still cohernt with the rest of the paragraph.
@@ -104,3 +100,20 @@ async def GlossaryDetector(context: list, abbreviation:str):
         ###
         result = result.strip(string.punctuation + " ")
         return result
+    
+async def WebQuery(question:str):
+    openai.api_key = os.environ['OPENAI_API_KEY']
+    query_message = [
+    {"role": "system", "content": "You are an Simple question and answer Model. You do not have individuality, opinion or a personality. You will receive a question. Answer the question in the most straight forwawrd way possible. Minimising words where possible. Try and keep responses below 50 words."},
+    ]
+    user_input = {"role": "user", "content": question}
+    query_message.append(user_input)
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages= query_message,
+        temperature=0.2
+        )
+    # await asyncio.sleep(5)
+    # print("TopicTrackerResponse")
+    result = (response['choices'][0]['message']['content'])
+    return result
