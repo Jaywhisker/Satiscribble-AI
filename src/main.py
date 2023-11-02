@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
 import asyncio
+from pydantic import BaseModel
 
 import queue
 
@@ -11,7 +12,15 @@ from microservice.track_minutes import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
 
+
+class AgendaUpdateRequest(BaseModel):
+    agenda: list
+    minutesID: str
+    chatHistoryID: str
+
+
 app = FastAPI()
+
 
 @app.get("/")
 async def root():
@@ -23,15 +32,17 @@ async def create_document():
     return initialiseMongoData()
 
 
+@app.post("/update_agenda")
+async def update_agenda(request_body: AgendaUpdateRequest):
+    mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
+    response = await mongoDB.update_agenda_meeting(request_body.agenda, True) 
+    return response
+
+
 @app.post("/track_minutes")
 async def handle_track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_id:str, chat_history_id:str, abbreviation:str = None):
     response = await track_minutes(new_minutes, topic_title, topic_id, minutes_id, chat_history_id, abbreviation)
     return response
-
-@app.post("/update_agenda")
-async def update_agenda(agenda:list, minutes_id:str, chat_history_id:str):
-    mongoDB = MongoDBManager(minutes_id, chat_history_id)
-    return await mongoDB.update_agenda_meeting(agenda, True) 
 
 
 # # Testing concurent calls
