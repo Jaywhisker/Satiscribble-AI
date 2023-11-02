@@ -18,9 +18,21 @@ class AgendaUpdateRequest(BaseModel):
     minutesID: str
     chatHistoryID: str
 
+class MeetingUpdateRequest(BaseModel):
+    data: dict
+    minutesID: str
+    chatHistoryID: str
+
+class TrackMinutesRequest(BaseModel):
+    topicID: str
+    topicTitle: str = None
+    minutes: str
+    abbreviation: str = None
+    minutesID: str
+    chatHistoryID: str 
+
 
 app = FastAPI()
-
 
 @app.get("/")
 async def root():
@@ -38,10 +50,15 @@ async def update_agenda(request_body: AgendaUpdateRequest):
     response = await mongoDB.update_agenda_meeting(request_body.agenda, True) 
     return response
 
+@app.post("/update_meeting")
+async def update_meeting(request_body: MeetingUpdateRequest):
+    mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
+    response = await mongoDB.update_agenda_meeting(request_body.data, False) 
+    return response
 
 @app.post("/track_minutes")
-async def handle_track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_id:str, chat_history_id:str, abbreviation:str = None):
-    response = await track_minutes(new_minutes, topic_title, topic_id, minutes_id, chat_history_id, abbreviation)
+async def handle_track_minutes(request_body: TrackMinutesRequest):
+    response = await track_minutes(request_body.minutes, request_body.topicTitle, request_body.topicID, request_body.minutesID, request_body.chatHistoryID, request_body.abbreviation)
     return response
 
 

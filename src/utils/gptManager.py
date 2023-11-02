@@ -62,7 +62,7 @@ async def AgendaTracker(context: list, agenda: list):
     query_message = [
     {"role": "system", "content": "You are a AgendaTracker model. You do not have individuality, opinion or a personality. You can only reply in True or False. You will expect a list of sentences that was recently mentioned and a list of potential Agenda items. Return False if the list of sentences is not related to any of the agenda items. Return True if the list of sentences is coherent with the agenda items. If even one sentence is not related, return False"},
     ]
-    user_input = {"role": "user", "content": "AgendaItems:" + agenda + ", Sentences:" + sentences}
+    user_input = {"role": "user", "content": "AgendaItems:" + str(agenda) + ", Sentences:" + sentences}
     query_message.append(user_input)
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
