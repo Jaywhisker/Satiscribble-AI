@@ -53,6 +53,13 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
             if new_sentence != old_sentence:
                 update_dict[sentenceID] = new_sentence
         
+        
+        if len(formatted_existing_minutes) > len(formatted_new_minutes):
+            i = len(formatted_new_minutes)
+            while i < len(formatted_existing_minutes):
+                update_dict[topic_id + str(i)] = None
+                i += 1
+        
         Topic, Agenda, Glossary, status = await asyncio.gather(
                                                         TopicTracker(newMinutesList),
                                                         AgendaTracker(newMinutesList, existingAgenda),
