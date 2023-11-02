@@ -183,7 +183,7 @@ class MongoDBManager():
 
 
 
-    def delete_topic(self, topic_id:str):
+    async def delete_topic(self, topic_id:str):
         """
             Function to delete a topic and all minutes inside
 
@@ -240,7 +240,7 @@ class MongoDBManager():
 
 
 
-    def clear_chat_history(self, query_type:str):
+    async def clear_chat_history(self, query_type:str):
         """
             Function to delete and clear chat history and replace with []
 
@@ -267,7 +267,7 @@ class MongoDBManager():
 
 
 
-    def delete_document(self, document_id:str, collection_name:str):
+    async def delete_document(self, document_id:str, collection_name:str):
         """
             Function to delete any document from any collection
 
@@ -288,7 +288,7 @@ class MongoDBManager():
 
 
 
-    def delete_all_documents(self, collection_name:str):
+    async def delete_all_documents(self, collection_name:str):
         """
             Function to delete ALL document from collection
 
@@ -351,23 +351,23 @@ class MongoDBManager():
         # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
         # print(read_agenda, read_topic, read_document_history, read_web_history)
 
-        # result = mongo.clear_chat_history('web')
+        # result = await mongo.clear_chat_history('web')
         # print(result)
         # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
         # print(read_web_history)
 
-        # result = mongo.delete_topic('0')
+        # result = await mongo.delete_topic('0')
         # print(result)
         # read_topic = mongo.read_MongoDB('minutes', False, '0', None)
         # print(read_topic)
 
-        # result = mongo.delete_document(document_ids["minutesID"], 'minutes')
+        # result = await mongo.delete_document(document_ids["minutesID"], 'minutes')
         # print(result)
 
-        # result = mongo.delete_all_documents('chatHistory')
+        # result = await mongo.delete_all_documents('chatHistory')
         # print(result)
 
-        # result = mongo.delete_all_documents('minutes')
+        # result = await mongo.delete_all_documents('minutes')
         # print(result)
 
     # except Exception as e:
