@@ -125,10 +125,20 @@ class MongoDBManager():
 
         else:
             for sentence_id in update_list.keys():
-                # First, check if the original sentence already exists in the DB. If yes, just replace the sentence.
-                # If it is a brand new sentence, then push it to sentences.
 
-                if self.database.minutes.count_documents({
+                if update_list[sentence_id] == None:
+                    #Delete sentence from database
+                    update_operation = {
+                        "$pull": {
+                            "topics.$[topic].sentences": {"sentenceID": sentence_id}
+                        },
+                    }
+                    
+                    array_filters = [
+                        {"topic.topicID": topic_id},
+                    ]
+
+                elif self.database.minutes.count_documents({
                     **filter_query,
                     "topics": {
                         "$elemMatch": {
@@ -141,7 +151,7 @@ class MongoDBManager():
                         }
                     }
                 }) > 0:
-                    #sentence exist, replace with new sentence
+                    #Sentence exist, replace with new sentence
                     update_operation = {
                         "$set": {
                             "topics.$[topic].sentences.$[sentence].sentenceText": update_list[sentence_id]
