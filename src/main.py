@@ -87,7 +87,7 @@ async def handle_clear_chat(request_body:ClearChatHistory):
 
 ##for our personal use, should never be called by frontend
 @app.post("/delete_document")
-async def handle_delete_collection(collectionName: str = Body(...), documentID: str = Body(None), minutesID: str = Body(...), chatHistoryID: str = Body(...)):
+async def handle_delete_document(collectionName: str = Body(...), documentID: str = Body(None), minutesID: str = Body(...), chatHistoryID: str = Body(...)):
     mongoDB = MongoDBManager(minutesID, chatHistoryID)
     if documentID == None:
         documentID = minutesID
