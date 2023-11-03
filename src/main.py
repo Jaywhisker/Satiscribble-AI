@@ -46,6 +46,8 @@ class ClearChatHistory(BaseModel):
 
 class WebQueryQuestion(BaseModel):
     question: str
+    minutesID: str
+    chatHistoryID: str 
 
 
 
@@ -102,7 +104,7 @@ async def worker():
                     result = await mongoDB.clear_chat_history(task_data.type)
 
                 elif task_type == 'webquery':
-                    result = await WebQuery(task_data.question)
+                    result = await WebQuery(task_data.question, task_data.minutesID, task_data.chatHistoryID)
                 
                 # Store the result
                 _, _ = pending_tasks[task_id]
