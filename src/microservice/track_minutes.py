@@ -1,4 +1,3 @@
-from bson import ObjectId
 import asyncio
 from utils.mongoDBManager import MongoDBManager
 from utils.formatData import *
@@ -23,7 +22,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
     Returns:
         dictionary in the format {topic: True/False, agenda: True/False, glossary: None or suggested name of abbreviation}
     """
-    mongoDB = MongoDBManager(ObjectId(minutes_id), ObjectId(chat_history_id))
+    mongoDB = MongoDBManager(minutes_id, chat_history_id)
     existing_minutes = mongoDB.read_MongoDB('minutes', False, topic_id, None)
     formatted_new_minutes =  formatTextMinutes(new_minutes, topic_id)
 
