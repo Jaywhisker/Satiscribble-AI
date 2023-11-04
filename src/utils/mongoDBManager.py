@@ -24,7 +24,7 @@ class MongoDBManager():
                 collection_name (str): Only minutes / chatHistory
                 agenda (boolean): True to query agenda, else use False
                 topic_id (str): Used to query the topic through topicID
-                chat_history_type (str): Used to determine which chatHistory to query, Only documents / web
+                chat_history_type (str): Used to determine which chatHistory to query, Only document / web
             
             Res: 
                 mongoDB response, always in the format of a JSON

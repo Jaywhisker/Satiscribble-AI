@@ -1,8 +1,42 @@
+from fastapi import HTTPException
 import openai
 import os
 import string
 
-# UHHHH should I use OS?
+async def queryGPT(query:list, model:str='gpt-3.5-turbo', temperature:float=0.2, request_timeout:int=3, max_retries:int=3):
+    """
+    General function to query gpt while maintaining timeout
+
+    Args:
+        query (list): your query to gpt
+        model (str): name of model you are using, defults gpt-3.5-turbo
+        temperature (int): what temperature are you setting, defaults 0.2
+        request_timeout (int): maximum time (in seconds) before timeout error
+        max_retries (int): maximum number of retries in the case of timeout
+
+    Returns:
+        gpt response
+    """
+    openai.api_key = os.environ['OPENAI_API_KEY']
+    retry_count = 0
+    while retry_count <= max_retries:
+        try:
+            response = openai.ChatCompletion.create(
+                model=model,
+                messages=query,
+                temperature=temperature,
+                request_timeout=request_timeout
+            )
+            return response['choices'][0]['message']['content']
+        
+        except Exception as e:
+            retry_count += 1
+            if retry_count <= max_retries:
+                print(f"Request failed (Retry {retry_count}). Pausing for 1 second before retrying.")
+                await asyncio.sleep(1)
+            else:
+                print("Max retries reached. Returning an error.")
+                raise HTTPException(status_code=500, detail="GPT timeout, please check GPT server.")
 
 
 
@@ -43,6 +77,8 @@ async def TopicTracker(context: list):
         print("errornous GPT response, taking as False and skipping")
         return False
 
+
+
 async def AgendaTracker(context: list, agenda: list):
     """
     Return True or False on whether the current sentence is still cohernt with the agenda of the meeting.
@@ -81,6 +117,8 @@ async def AgendaTracker(context: list, agenda: list):
         print("errornous GPT response, taking as False and skipping")
         return False
 
+
+
 async def GlossaryDetector(context: list, abbreviation:str):
     if abbreviation == None:
         return None
@@ -104,3 +142,76 @@ async def GlossaryDetector(context: list, abbreviation:str):
         ###
         result = result.strip(string.punctuation + " ")
         return result
+    
+
+
+async def createStandAloneQuery(formatted_chat_history:list, query:str):
+    """
+    Function to convert the latest user query to a standalone question such that it can be used to query to the chromaDB
+    Will only take the last 3 user input and user results
+
+    Args:
+        formatted_chat_history (list): chat history that will be used as context 
+        query (string): user query that will be reformatted
+    
+    Returns:
+        formatted query to become a standalone question
+    """
+    #only taking latest 3 user query
+    if len(formatted_chat_history) > 6:
+        formatted_chat_history = formatted_chat_history[len(formatted_chat_history)-6:]
+        print(formatted_chat_history)
+    
+    #creating chat context
+    chat_context = ''
+    while len(formatted_chat_history) > 0:
+        chat_context += f'{formatted_chat_history[0]["role"]}: {formatted_chat_history[0]["content"]}\n'
+        chat_context += f'{formatted_chat_history[1]["role"]}: {formatted_chat_history[1]["content"]}\n'
+        formatted_chat_history = formatted_chat_history[2:]
+        print(len(formatted_chat_history))
+    
+    
+    system_prompt = f"""You are given a conversation. Given a new question, you task is to rephrase the last user query to be a standalone question in its own original language. If the last user query is unrelated to the conversation, return the query. Your response should just be the question and nothing else.
+    
+    Chathistory:
+    {chat_context}
+    
+    Last user query: {query}
+    """
+    query_message = [{"role": "system", "content": system_prompt}]
+    response =  await queryGPT(query_message)
+    return response.strip()
+
+
+
+async def documentQuery(query:str, context_dict:dict):
+    """
+    Function to query GPT based on the minutes
+
+    Args:
+        query (string): reformatted user query
+        context_dict (list): dictionary containing the context for gpt. In the format of {topic_title: topic_details}
+
+    Returns:
+        answer to the question
+    """
+    format_context = ''
+    for topic_title, topic_text in context_dict.items():
+        format_context += f"Topic Title: {topic_title}\n"
+        format_context += f"{topic_text}\n\n"
+    
+    system_prompt = f"""You are given the following context in the format of Topic Title: Topic Content. Given a user query, response with the details from the context. Do not fabricate any information. Be short and concise. If the context does not contain any information, respond that you do not have the knowledge and apologise.
+                        Context:
+                        {format_context}
+
+                        User Query:
+                        {query}
+                    """
+    query_message = [{"role": "system", "content": system_prompt}]
+    response =  await queryGPT(query_message, request_timeout=5)
+    return response.strip()
+
+    
+
+
+

@@ -5,10 +5,8 @@ from pydantic import BaseModel
 
 import queue
 
-import openai
-import os
-
 from microservice.track_minutes import *
+from microservice.document_qna import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
 
@@ -41,7 +39,11 @@ class ClearChatHistory(BaseModel):
     minutesID: str
     chatHistoryID: str 
 
-
+class QnA(BaseModel):
+    query: str
+    type: str
+    minutesID: str
+    chatHistoryID: str 
 
 app = FastAPI()
 
@@ -78,11 +80,15 @@ async def handle_delete_topic(request_body: DeleteTopicRequest):
     return await mongoDB.delete_topic(request_body.topicID)
 
 
+@app.post("/document_query")
+async def handle_document_qna(request_body: QnA):
+    return await document_qna(request_body.query, request_body.minutesID, request_body.chatHistoryID)
+
+
 @app.post("/clear")
 async def handle_clear_chat(request_body:ClearChatHistory):
         mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
         return await mongoDB.clear_chat_history(request_body.type)
-
 
 
 ##for our personal use, should never be called by frontend
