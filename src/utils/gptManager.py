@@ -62,16 +62,12 @@ async def TopicTracker(context: list):
     user_input = {"role": "user", "content": sentences}
     query_message.append(user_input)
 
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages= query_message,
-        temperature=0.2
-        )
-    result = response['choices'][0]['message']['content']
+    response = await queryGPT(query_message, request_timeout=5)
+
     ### 
-    if result == "True":
+    if response == "True":
         return True
-    elif result == "False":
+    elif response == "False":
         return False
     else:
         print("errornous GPT response, taking as False and skipping")
@@ -100,18 +96,13 @@ async def AgendaTracker(context: list, agenda: list):
     ]
     user_input = {"role": "user", "content": "AgendaItems:" + str(agenda) + ", Sentences:" + sentences}
     query_message.append(user_input)
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages= query_message,
-        temperature=0.2
-        )
+    response = await queryGPT(query_message, request_timeout=5)
     # await asyncio.sleep(5)
     # print("TopicTrackerResponse")
-    result = (response['choices'][0]['message']['content'])
     ###
-    if result == "True":
+    if response == "True":
         return True
-    elif result == "False":
+    elif response == "False":
         return False
     else:
         print("errornous GPT response, taking as False and skipping")
@@ -139,17 +130,16 @@ async def GlossaryDetector(context: list, abbreviation:str):
         ]
         user_input = {"role": "user", "content": "Abbreviation: " + abbreviation + ", Context:" + sentences}
         query_message.append(user_input)
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages= query_message,
-            temperature=0.2
-            )
+        # response = openai.ChatCompletion.create(
+        #     model="gpt-3.5-turbo",
+        #     messages= query_message,
+        #     temperature=0.2
+        #     )
         # await asyncio.sleep(5)
         # print("TopicTrackerResponse")
-        result = (response['choices'][0]['message']['content'])
-        ###
-        result = result.strip(string.punctuation + " ")
-        return result
+        response = await queryGPT(query_message, request_timeout=5)
+
+        return response.strip()
     
 
 
@@ -219,7 +209,25 @@ async def documentQuery(query:str, context_dict:dict):
     response =  await queryGPT(query_message, request_timeout=5)
     return response.strip()
 
-    
+
+async def webQuery(query:str, context:list):
+    """
+    Function to query GPT based on the conversation you had with it
+
+    Args:
+        query (string): reformatted user query
+        context_dict (list): dictionary containing the context for gpt. In the format of {topic_title: topic_details}
+
+    Returns:
+        answer to the question
+    """
+    query_message = [
+    {"role": "system", "content": "You are an Simple question and answer Model. You do not have individuality, opinion or a personality. You will receive a question. Answer the question in the most straight forwawrd way possible. Minimising words where possible. Try and keep responses below 50 words."},
+    ]
+    query_message = query_message + context
+    query_message.append({"role": "user", "content": query})
+    response = await queryGPT(query_message, request_timeout=5)
+    return response.strip()
 
 
 

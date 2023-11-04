@@ -10,6 +10,7 @@ import queue
 
 from microservice.track_minutes import *
 from microservice.document_qna import *
+from microservice.web_qna import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
 
@@ -100,7 +101,7 @@ async def worker():
                     result = await mongoDB.clear_chat_history(task_data.type)
 
                 elif task_type == 'webquery':
-                    result = await WebQuery(task_data.question, task_data.minutesID, task_data.chatHistoryID)
+                    result = await web_query(task_data.query, task_data.minutesID, task_data.chatHistoryID)
                 
                 # Store the result
                 _, _ = pending_tasks[task_id]
@@ -156,8 +157,8 @@ async def handle_delete_topic(request_body: DeleteTopicRequest):
 async def handle_clear_chat(request_body:ClearChatHistory):
     return await AddTaskWaitResponse('clear', request_body)
 
-@app.post("/webquery")
-async def handleWebQuery(request_body:WebQueryQuestion):
+@app.post("/web_query")
+async def handleWebQuery(request_body:QnA):
     return await AddTaskWaitResponse('webquery', request_body)
 
 
