@@ -160,25 +160,3 @@ class ChromaDBManager():
         print(self.minutesCollection.get(include=['documents', 'metadatas']))
         return self.minutesCollection.get(include=['documents', 'metadatas'])
 
-
-
-
-
-# async def test():
-#     update_list = {'01': 'We need to finish web experiment coding and planning by Wednesday', '00': 'Still need to write Iteration 3.04', '02': 'Consult Kenny on wednesday, With approval we will continue web experiment', '04': 'Jefferson is almost done with main table component of the project dashboard page'}
-#     # update_list = {'19': 'The buttons still look wrong even though we changed the buttons last week', '191': 'Hubob is done with his part, however there is some errors with the page', '04': None}
-#     try:
-#         print('initialising')
-#         db = ChromaDBManager('hei')
-#         # db.delete_collection('hei')
-#         # result = await db.update_embeddings(update_list, '1', 'General Progress')
-#         # print(result) 
-#         # db.get_documents()
-#         result, result2 = await db.query_collection('who did the buttons?', 3)
-#         print(result, result2)
-
-#     except Exception as e:
-#         print(e)
-
-# if __name__ == "__main__":
-#     asyncio.run(test())
