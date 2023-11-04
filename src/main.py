@@ -1,9 +1,6 @@
 from fastapi import FastAPI, Body
 from fastapi import HTTPException
-import asyncio
 from pydantic import BaseModel
-
-import queue
 
 from microservice.track_minutes import *
 from microservice.document_qna import *
@@ -45,7 +42,9 @@ class QnA(BaseModel):
     minutesID: str
     chatHistoryID: str 
 
+
 app = FastAPI()
+
 
 @app.get("/")
 async def root():
