@@ -1,5 +1,6 @@
 import asyncio
 from utils.mongoDBManager import MongoDBManager
+from utils.chromaDBManager import ChromaDBManager
 from utils.formatData import *
 from utils.gptManager import *
 
@@ -22,6 +23,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
     Returns:
         dictionary in the format {topic: True/False, agenda: True/False, glossary: None or suggested name of abbreviation}
     """
+    chromaDB = ChromaDBManager(minutes_id)
     mongoDB = MongoDBManager(minutes_id, chat_history_id)
     existing_minutes = mongoDB.read_MongoDB('minutes', False, topic_id, None)
     formatted_new_minutes =  formatTextMinutes(new_minutes, topic_id)
@@ -33,13 +35,13 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
     
     if existing_minutes == None:
         # New topic block
-        Topic, Agenda, Glossary, status = await asyncio.gather(
-                                                        TopicTracker(newMinutesList),
-                                                        AgendaTracker(newMinutesList, existingAgenda),
-                                                        GlossaryDetector(newMinutesList,abbreviation),
-                                                        mongoDB.update_topic_minutes(formatted_new_minutes, True, topic_id, topic_title),
-                                                        #update chromaDB
-                                                    )
+        Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
+                                                            TopicTracker(newMinutesList),
+                                                            AgendaTracker(newMinutesList, existingAgenda),
+                                                            GlossaryDetector(newMinutesList,abbreviation),
+                                                            mongoDB.update_topic_minutes(formatted_new_minutes, True, topic_id, topic_title),
+                                                            chromaDB.update_embeddings(formatted_new_minutes, topic_id, topic_title)
+                                                        )
   
 
     else:
@@ -59,12 +61,12 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
                 update_dict[topic_id + str(i)] = None
                 i += 1
         
-        Topic, Agenda, Glossary, status = await asyncio.gather(
+        Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
                                                         TopicTracker(newMinutesList),
                                                         AgendaTracker(newMinutesList, existingAgenda),
                                                         GlossaryDetector(newMinutesList,abbreviation),
                                                         mongoDB.update_topic_minutes(update_dict, False, topic_id, topic_title),
-                                                        #update chromaDB
+                                                        chromaDB.update_embeddings(update_dict, topic_id, topic_title)
                                                     )
     
 
