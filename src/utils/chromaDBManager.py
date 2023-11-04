@@ -3,9 +3,7 @@ from unittest import result
 import chromadb
 from chromadb.utils import embedding_functions
 from fastapi import HTTPException
-import asyncio
-from langchain.vectorstores import Chroma
-# from langchain.embeddings import OpenAIEmbeddings
+
 
 
 class ChromaDBManager():
@@ -18,10 +16,6 @@ class ChromaDBManager():
                                                                     model_name="text-embedding-ada-002"
                                                                 )
         self.minutesCollection = self.chromaDB.get_or_create_collection(self.collection_name, embedding_function=self.embeddingFunction)
-        # self.langChainChrome = Chroma(client = self.chromaDB,
-        #                               collection_name = collection_name,
-        #                               embedding_function = OpenAIEmbeddings())
-
 
 
     async def update_embeddings(self, update_list:dict, topic_id: str, topic_title:str):
