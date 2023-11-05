@@ -112,7 +112,7 @@ async def worker():
                     result = await web_query(task_data.query, task_data.minutesID, task_data.chatHistoryID)
 
                 elif task_type == 'summary':
-                    result = await summarisation(task_data.text, task_data.topicTitle, task_data.minutesID, task_data.chatHistoryID)
+                    result = await summarizeText(task_data.text, task_data.topicTitle, task_data.minutesID, task_data.chatHistoryID)
                 
                 # Store the result
                 _, _ = pending_tasks[task_id]
@@ -221,17 +221,14 @@ async def handle_clear_chat(request_body:ClearChatHistory):
         mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
         return await mongoDB.clear_chat_history(request_body.type)
 
-@app.post("/summary")
+@app.post("/summarise")
 async def handle_summarisation(request_body: SummarisationRequest):
-    result = await summarisation(
+    result = await summarizeText(
         request_body.minutesID,
         request_body.chatHistoryID,
         request_body.topicID,  
         request_body.topicTitle
     )
-
-    if "error" in result:
-        raise HTTPException(status_code=404, detail=result["error"])
 
     return {"summary": result["summary"]}
 
