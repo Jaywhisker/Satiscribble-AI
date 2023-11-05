@@ -1,5 +1,4 @@
 import os
-from unittest import result
 import chromadb
 from chromadb.utils import embedding_functions
 from fastapi import HTTPException
