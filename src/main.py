@@ -11,6 +11,7 @@ import queue
 from microservice.track_minutes import *
 from microservice.document_qna import *
 from microservice.web_qna import *
+from microservice.summarisation import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
 
@@ -48,6 +49,13 @@ class QnA(BaseModel):
     type: str
     minutesID: str
     chatHistoryID: str 
+
+class SummarisationRequest(BaseModel):
+    text: str
+    minutesID: str
+    chatHistoryID: str
+    topicTitle: str
+    topicID: str 
 
 app = FastAPI()
 
@@ -102,6 +110,9 @@ async def worker():
 
                 elif task_type == 'webquery':
                     result = await web_query(task_data.query, task_data.minutesID, task_data.chatHistoryID)
+
+                elif task_type == 'summary':
+                    result = await summarisation(task_data.text, task_data.topicTitle, task_data.minutesID, task_data.chatHistoryID)
                 
                 # Store the result
                 _, _ = pending_tasks[task_id]
@@ -210,6 +221,19 @@ async def handle_clear_chat(request_body:ClearChatHistory):
         mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
         return await mongoDB.clear_chat_history(request_body.type)
 
+@app.post("/summary")
+async def handle_summarisation(request_body: SummarisationRequest):
+    result = await summarisation(
+        request_body.minutesID,
+        request_body.chatHistoryID,
+        request_body.topicID,  
+        request_body.topicTitle
+    )
+
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+
+    return {"summary": result["summary"]}
 
 ##for our personal use, should never be called by frontend
 @app.post("/delete_document")
