@@ -19,14 +19,14 @@ class ChromaDBManager():
 
     async def update_embeddings(self, update_list:dict, topic_id: str, topic_title:str):
         """
-        Function to update vector embeddings inside chrome
+            Function to update vector embeddings inside chrome
 
-        Args:
-            update_list (dict): dictionary in the format of {sentenceID: sentenceText} that needs to be updated, will be {sentenceID: None} if to be deleted
-            topic_id (str): string containing the topic id, will be the metadata (defines the parent document)
+            Args:
+                update_list (dict): dictionary in the format of {sentenceID: sentenceText} that needs to be updated, will be {sentenceID: None} if to be deleted
+                topic_id (str): string containing the topic id, will be the metadata (defines the parent document)
 
-        Returns:
-            dictionary of status 200
+            Returns:
+                dictionary of status 200
         """
         meta_data = {'topicID': topic_id, 'topicTitle': topic_title if topic_title!= None else 'No Title'}
         update_sentenceID = []
@@ -57,12 +57,12 @@ class ChromaDBManager():
 
     async def upsert_embedding(self, sentenceID, sentenceText, metadata):
         """
-        Function to upsert embeddings
+            Function to upsert embeddings
 
-        Args:
-            sentenceID (list): list of ids(str) to be updated
-            sentenceText (list): list of sentence text (str) to be updated
-            metadata (dict): dict in the format of {'topicID': topic_id}
+            Args:
+                sentenceID (list): list of ids(str) to be updated
+                sentenceText (list): list of sentence text (str) to be updated
+                metadata (dict): dict in the format of {'topicID': topic_id}
         """
         self.minutesCollection.upsert(ids= sentenceID, 
                         metadatas= [metadata for i in range(len(sentenceID))],
@@ -72,10 +72,10 @@ class ChromaDBManager():
     
     async def delete_embedding(self, deletedIDs):
         """
-        Function to delete embeddings based on the specific ids
+            Function to delete embeddings based on the specific ids
 
-        Args:
-            deletedIDs (list): list of ids(str) to be deleted
+            Args:
+                deletedIDs (list): list of ids(str) to be deleted
         """
         self.minutesCollection.delete(ids = deletedIDs)
             
@@ -119,13 +119,13 @@ class ChromaDBManager():
     
     def delete_collection(self, collection_name:str):
         """
-        Function to delete collection from chromaDB
+            Function to delete collection from chromaDB
 
-        Args:
-            collection_name (str): Name of collection to be deleted
+            Args:
+                collection_name (str): Name of collection to be deleted
 
-        Returns:
-            dict of status 200
+            Returns:
+                dict of status 200
         """
         self.chromaDB.delete_collection(collection_name)
         return {'status': 200}
@@ -134,10 +134,10 @@ class ChromaDBManager():
 
     def list_collection(self):
         """
-        Function to retrieve all collections in database
+            Function to retrieve all collections in database
 
-        Returns:
-            list of all available collections
+            Returns:
+                list of all available collections
         """
         print(self.chromaDB.list_collections())
         return self.chromaDB.list_collections()
@@ -145,10 +145,10 @@ class ChromaDBManager():
 
     def get_documents(self):
         """
-        Function to retrieve all documents inside collection
+            Function to retrieve all documents inside collection
 
-        Returns:
-            dictionary of all documents
+            Returns:
+                dictionary of all documents
         """
         print(self.minutesCollection.get(include=['documents', 'metadatas']))
         return self.minutesCollection.get(include=['documents', 'metadatas'])
