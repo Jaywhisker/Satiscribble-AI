@@ -1,4 +1,5 @@
 import re
+from fastapi import HTTPException
 
 def formatTextMinutes(text_minutes:str, topic_id:str):
     """
@@ -54,6 +55,8 @@ def formatTextMinutesList(text_minutes: str):
     sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
     return sentences
 
+
+
 def  createContext(text_minutes:str, min_context:int = 3):
     """
     Takes in a list of sentences and returns the last min_context sentences as a list
@@ -72,3 +75,23 @@ def  createContext(text_minutes:str, min_context:int = 3):
         return sentences
     relevant_context = sentences[-min_context:] if len(sentences) >= min_context else sentences
     return relevant_context
+
+
+def formatChatHistory(chat_history:list[dict]):
+    """
+    Function to format chatHistory nicely into a list of dictionary for chatCompletetion
+
+    Args:
+        chat_history (list[dict]): list of dictionary in the format of [{user: query, assistant: response}, {user:query, assistance: response}]
+
+    Returns:
+        formatted_chat_history: list of dictionary in the format [{role: user, content: query}, {role: assistant, content:response}, {}...]
+    """
+    formatted_chat_history = []
+    while len(chat_history) > 0:
+        formatted_chat_history.append({'role': 'user', 'content': chat_history[0]['user']})
+        formatted_chat_history.append({'role': 'assistant', 'content': chat_history[0]['assistant']})
+        chat_history = chat_history[2:]
+
+    return formatted_chat_history
+
