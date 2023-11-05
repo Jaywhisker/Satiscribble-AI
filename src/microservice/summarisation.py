@@ -9,7 +9,6 @@ async def summarizeText(minutes_id: str, chat_history_id: str, text: str, model:
     
     openai.api_key = os.environ.get('OPENAI_API_KEY')
 
-    # Initialize MongoDBManager
     mongoDB = MongoDBManager(minutes_id, chat_history_id)
 
     
@@ -33,10 +32,8 @@ async def summarizeText(minutes_id: str, chat_history_id: str, text: str, model:
                 timeout=request_timeout
             )
             summary = response.choices[0].text.strip()
-
-            # Here you might want to update MongoDB with the summary result.
             
-            return summary
+            return {"summary": summary}
         
         except openai.error.OpenAIError as e:
             print(f"An error occurred with OpenAI: {e}")
@@ -45,7 +42,7 @@ async def summarizeText(minutes_id: str, chat_history_id: str, text: str, model:
                 print(f"Summarization request failed, retry {retry_count}/{max_retries}. Retrying after a pause.")
                 await asyncio.sleep(1)
             else:
-                print("Max retries reached for summarization. Cannot return a summary.")
+                print("Max retries reached for summarization. Cannot return summary.")
                 # Here you might want to log the final failure to MongoDB.
                 return "Failed to summarize the text after multiple attempts."
 
