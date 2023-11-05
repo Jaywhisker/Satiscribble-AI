@@ -9,6 +9,10 @@ docker compose up
 ```
 Afterwhich, enter the docker container terminal and run `uvicorn main:app --port=8000 --host=0.0.0.0` to start the service.
 
+```
+uvicorn main:app --port=8000 --host=0.0.0.0
+```
+
 # File structure
 This section will explain the file structure of this repository.
 
