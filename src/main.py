@@ -7,6 +7,7 @@ from microservice.document_qna import *
 from microservice.web_qna import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
+from utils.gptManager import streamGPTQuery
 
 
 class AgendaUpdateRequest(BaseModel):
@@ -82,11 +83,19 @@ async def handle_delete_topic(request_body: DeleteTopicRequest):
 
 @app.post("/document_query")
 async def handle_document_qna(request_body: QnA):
-    return await document_qna(request_body.query, request_body.minutesID, request_body.chatHistoryID)
+    mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
+    header, formatted_query_message =  await document_qna(request_body.query, mongoDB, request_body.minutesID)
+    return streamGPTQuery(formatted_query_message, user_query=request_body.query, type=request_body.type, request_timeout=5, header=header, mongoDB=mongoDB)
+
+
 
 @app.post("/web_query")
 async def handle_web_qna(request_body: QnA):
-    return await web_query(request_body.query, request_body.minutesID, request_body.chatHistoryID)
+    mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
+    formatted_query_message = await web_query(request_body.query, mongoDB)
+    return streamGPTQuery(formatted_query_message, user_query=request_body.query, type=request_body.type, request_timeout=5, mongoDB=mongoDB)
+
+
 
 
 @app.post("/clear")
