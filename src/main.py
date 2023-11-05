@@ -235,14 +235,13 @@ async def handle_clear_chat(request_body:ClearChatHistory):
 
 @app.post("/summarise")
 async def handle_summarisation(request_body: SummarisationRequest):
-    result = await summarizeText(
+    return await summarizeText(
         request_body.minutesID,
         request_body.chatHistoryID,
         request_body.topicID,  
         request_body.topicTitle
     )
 
-    return {"summary": result["summary"]}
 
 ##for our personal use, should never be called by frontend
 @app.post("/delete_document")
