@@ -298,17 +298,24 @@ async def webQuery(query:str, context:list):
     query_message.append({"role": "user", "content": query})
     return query_message
 
-async def summarizeText(text: str, model: str='gpt-3.5-turbo', temperature: float=0.3, max_tokens: int=150, request_timeout: int=5, max_retries: int=3):
+async def summarizeText(
+    minutes_id: str,
+    chat_history_id: str,
+    text: str,
+    model: str = 'gpt-3.5-turbo',
+    temperature: float = 0.2,
+    max_tokens: int = 150,
+    request_timeout: int = 5,
+    max_retries: int = 3
+) -> str:
     """
-    Function to summarize a given text using GPT.
+    Function to summarize a given text using GPT, including identifiers for minutes and chat history.
 
     Args:
-        text (str): The text to summarize.
-        model (str): Name of the GPT model to use, defaults to 'gpt-3.5-turbo'.
-        temperature (float): The sampling temperature for randomness in response, defaults to 0.3.
-        max_tokens (int): The maximum number of tokens to generate, defaults to 150.
-        request_timeout (int): The maximum time (in seconds) before timing out, defaults to 5.
-        max_retries (int): Maximum number of retries in case of a timeout, defaults to 3.
+        text (string): The text to summarise.
+        max_tokens (interger): The maximum number of tokens to generate, defaults to 150.
+        request_timeout (integer): The maximum time (in seconds) before timing out, defaults to 5.
+        max_retries (integer): Maximum number of retries in case of a timeout, defaults to 3.
 
     Returns:
         str: A summary of the provided text.
