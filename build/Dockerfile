@@ -1,5 +1,5 @@
 FROM pytorch/pytorch:1.13.0-cuda11.6-cudnn8-runtime
-FROM python:3.10.1
+FROM python:3.10.13
 
 RUN apt update && apt upgrade -y 
 RUN apt-get update && apt-get upgrade -y 
