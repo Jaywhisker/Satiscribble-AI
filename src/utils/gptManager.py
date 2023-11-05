@@ -229,49 +229,49 @@ async def webQuery(query:str, context:list):
     response = await queryGPT(query_message, request_timeout=5)
     return response.strip()
 
-async def summarizeText(
-    minutes_id: str,
-    chat_history_id: str,
-    text: str,
-    model: str = 'gpt-3.5-turbo',
-    temperature: float = 0.2,
-    max_tokens: int = 150,
-    request_timeout: int = 5,
-    max_retries: int = 3
-) -> str:
-    """
-    Function to summarize a given text using GPT, including identifiers for minutes and chat history.
+# async def summarize_content(
+#     minutes_id: str,
+#     chat_history_id: str,
+#     text: str,
+#     model: str = 'gpt-3.5-turbo',
+#     temperature: float = 0.2,
+#     max_tokens: int = 150,
+#     request_timeout: int = 5,
+#     max_retries: int = 3
+# ) -> str:
+#     """
+#     Function to summarize a given text using GPT, including identifiers for minutes and chat history.
 
-    Args:
-        text (string): The text to summarise.
-        max_tokens (interger): The maximum number of tokens to generate, defaults to 150.
-        request_timeout (integer): The maximum time (in seconds) before timing out, defaults to 5.
-        max_retries (integer): Maximum number of retries in case of a timeout, defaults to 3.
+#     Args:
+#         text (string): The text to summarise.
+#         max_tokens (interger): The maximum number of tokens to generate, defaults to 150.
+#         request_timeout (integer): The maximum time (in seconds) before timing out, defaults to 5.
+#         max_retries (integer): Maximum number of retries in case of a timeout, defaults to 3.
 
-    Returns:
-        str: A summary of the provided text.
-    """
-    openai.api_key = os.environ['OPENAI_API_KEY']
-    retry_count = 0
-    prompt = f"Summarize the following text:\n\n{text}\n\nSummary:"
+#     Returns:
+#         str: A summary of the provided text.
+#     """
+#     openai.api_key = os.environ['OPENAI_API_KEY']
+#     retry_count = 0
+#     prompt = f"Summarize the following text:\n\n{text}\n\nSummary:"
 
-    while retry_count <= max_retries:
-        try:
-            response = openai.Completion.create(
-                model=model,
-                prompt=prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                request_timeout=request_timeout
-            )
-            summary = response.choices[0].text.strip()
-            return summary
+#     while retry_count <= max_retries:
+#         try:
+#             response = openai.Completion.create(
+#                 model=model,
+#                 prompt=prompt,
+#                 temperature=temperature,
+#                 max_tokens=max_tokens,
+#                 request_timeout=request_timeout
+#             )
+#             summary = response.choices[0].text.strip()
+#             return summary
         
-        except Exception as e:
-            retry_count += 1
-            if retry_count <= max_retries:
-                print(f"Summarization request failed (Retry {retry_count}). Pausing for a second before retrying.")
-                await asyncio.sleep(1)
-            else:
-                print("Max retries reached for summarization. Returning an error.")
-                raise HTTPException(status_code=500, detail="GPT summarization timeout, please check GPT server.")
+#         except Exception as e:
+#             retry_count += 1
+#             if retry_count <= max_retries:
+#                 print(f"Summarization request failed (Retry {retry_count}). Pausing for a second before retrying.")
+#                 await asyncio.sleep(1)
+#             else:
+#                 print("Max retries reached for summarization. Returning an error.")
+#                 raise HTTPException(status_code=500, detail="GPT summarization timeout, please check GPT server.")
