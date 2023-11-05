@@ -92,7 +92,7 @@ async def AgendaTracker(context: list, agenda: list):
     ### GPT stuff ###
     openai.api_key = os.environ['OPENAI_API_KEY']
     query_message = [
-    {"role": "system", "content": "You are a AgendaTracker model. You do not have individuality, opinion or a personality. You can only reply in True or False. You will expect a list of sentences that was recently mentioned and a list of potential Agenda items. Return False if the list of sentences is not related to any of the agenda items. Return True if the list of sentences is coherent with the agenda items. If even one sentence is not related, return False"},
+    {"role": "system", "content": "You are a AgendaTracker model. You do not have individuality, opinion or a personality. You can only reply in True or False. You will expect a list of bullet points that was recently mentioned and a list of potential Agenda items. Return False if the list of bullet points is not related to any of the agenda items. Return True if the list of sentences is related or somewhat related with the agenda items. Do note that as these are bullet points, they may not be complete sentences."},
     ]
     user_input = {"role": "user", "content": "AgendaItems:" + str(agenda) + ", Sentences:" + sentences}
     query_message.append(user_input)
@@ -126,7 +126,7 @@ async def GlossaryDetector(context: list, abbreviation:str):
         ### GPT stuff ###
         openai.api_key = os.environ['OPENAI_API_KEY']
         query_message = [
-        {"role": "system", "content": "You are an Abbreviation DetectionModel. You do not have individuality, opinion or a personality. Expect an abbreviation and several sentences for the context of the word. Your response will be what the abbreviation stands for in the context of the sentences provided. Your responses will only contain a number of words equivilant to the number of letters in the Abbreviation provided. The only exception are short function words where appropriate. Each word will start with their corresponding letter in the abbreviation."},
+        {"role": "system", "content": "You are an Abbreviation DetectionModel. You do not have individuality, opinion or a personality. Expect an abbreviation and several sentences for the context of the word. Your response will be what the abbreviation stands for in the context of the sentences provided. Your responses will only contain a number of words equivilant to the number of letters in the Abbreviation provided. The only exception are short function words where appropriate. Each word will start with their corresponding letter in the abbreviation. This is the format of response: '[abbreviation]: [Your best guess on what the abbreviation means]'"},
         ]
         user_input = {"role": "user", "content": "Abbreviation: " + abbreviation + ", Context:" + sentences}
         query_message.append(user_input)
@@ -139,7 +139,7 @@ async def GlossaryDetector(context: list, abbreviation:str):
         # print("TopicTrackerResponse")
         response = await queryGPT(query_message, request_timeout=5)
 
-        return response.strip()
+        return response.strip().rstrip('.')
     
 
 
