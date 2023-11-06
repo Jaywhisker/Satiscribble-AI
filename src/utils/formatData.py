@@ -95,3 +95,22 @@ def formatChatHistory(chat_history:list[dict]):
 
     return formatted_chat_history
 
+def formatPreSummaryMinutes(topics: list, topic_id: str) -> str:
+    """
+    Function to format chatHistory nicely into a list of dictionary for chatCompletetion
+
+    Args:
+        topics (list[dict]): list of dictionary where each dictionary represents a topic
+        topic_title: title of minutes to be compiled
+    Returns:
+        combined_minutes: single string with all the sentences combined seprated by a newline character
+    """
+    sentences_texts = []
+
+    for topic in topics:
+        sentences_texts.append(topic["sentenceText"])
+
+
+    combined_minutes = "\n".join(sentences_texts)
+    return combined_minutes
+

@@ -6,6 +6,7 @@ from microservice.track_minutes import *
 from microservice.document_qna import *
 from microservice.web_qna import *
 from microservice.read_history import *
+from microservice.summarisation import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
 from utils.gptManager import streamGPTQuery
@@ -47,6 +48,12 @@ class QnA(BaseModel):
     type: str
     minutesID: str
     chatHistoryID: str 
+
+class SummarisationRequest(BaseModel):
+    minutesID: str
+    chatHistoryID: str
+    topicTitle: str
+    topicID: str 
 
 
 app = FastAPI()
@@ -108,6 +115,15 @@ async def handle_clear_chat(request_body:ClearChatHistory):
         mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
         return await mongoDB.clear_chat_history(request_body.type)
 
+@app.post("/summarise")
+async def handle_summarisation(request_body: SummarisationRequest):
+    return await summariseText(
+        request_body.minutesID,
+        request_body.chatHistoryID,
+        request_body.topicID,  
+        request_body.topicTitle
+    )
+
 
 ##for our personal use, should never be called by frontend
 @app.post("/delete_document")
@@ -122,4 +138,3 @@ async def handle_delete_document(collectionName: str = Body(...), documentID: st
 async def handle_delete_collection(collectionName: str = Body(...), minutesID: str = Body(...), chatHistoryID: str = Body(...)):
     mongoDB = MongoDBManager(minutesID, chatHistoryID)
     return await mongoDB.delete_all_documents(collectionName)
-
