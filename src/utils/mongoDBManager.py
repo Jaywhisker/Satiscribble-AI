@@ -3,8 +3,6 @@ import os
 from fastapi import HTTPException
 from bson import ObjectId
 
-from utils.createMongoDocument import initialiseMongoData
-
 
 class MongoDBManager():
     def __init__(self, minutesID, chatHistoryID):
@@ -16,7 +14,7 @@ class MongoDBManager():
 
 
 
-    def read_MongoDB(self, collection_name:str, agenda:bool, topic_id:str, chat_history_type:str):
+    def read_MongoDB(self, collection_name:str, agenda:bool= False, topic_id:str= None, chat_history_type:str= None):
         """
             Function to read from MongoDB
 
