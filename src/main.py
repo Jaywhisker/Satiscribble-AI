@@ -5,10 +5,14 @@ from pydantic import BaseModel
 from microservice.track_minutes import *
 from microservice.document_qna import *
 from microservice.web_qna import *
+from microservice.read_history import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
 from utils.gptManager import streamGPTQuery
 
+class BaseRequest(BaseModel):
+    minutesID: str
+    chatHistoryID: str
 
 class AgendaUpdateRequest(BaseModel):
     agenda: list
@@ -57,6 +61,10 @@ async def root():
 async def create_document():
     return initialiseMongoData()
 
+@app.post("/read_history")
+async def handle_read_history(request_body: BaseRequest):
+    return await read_history(request_body.minutesID, request_body.chatHistoryID)
+
 
 @app.post("/update_agenda")
 async def update_agenda(request_body: AgendaUpdateRequest):
@@ -88,14 +96,11 @@ async def handle_document_qna(request_body: QnA):
     return streamGPTQuery(formatted_query_message, user_query=request_body.query, type=request_body.type, request_timeout=5, header=header, mongoDB=mongoDB)
 
 
-
 @app.post("/web_query")
 async def handle_web_qna(request_body: QnA):
     mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
     formatted_query_message = await web_query(request_body.query, mongoDB)
     return streamGPTQuery(formatted_query_message, user_query=request_body.query, type=request_body.type, request_timeout=5, mongoDB=mongoDB)
-
-
 
 
 @app.post("/clear")
