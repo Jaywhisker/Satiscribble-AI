@@ -95,7 +95,7 @@ def formatChatHistory(chat_history:list[dict]):
 
     return formatted_chat_history
 
-def formatPreSummaryMinutes(topics: list, topic_title: str) -> str:
+def formatPreSummaryMinutes(topics: list, topic_id: str) -> str:
     """
     Function to format chatHistory nicely into a list of dictionary for chatCompletetion
 
@@ -108,9 +108,8 @@ def formatPreSummaryMinutes(topics: list, topic_title: str) -> str:
     sentences_texts = []
 
     for topic in topics:
-        if topic["topicTitle"] == topic_title:
-            sentences_texts.extend(sentence["sentencesText"] for sentence in topic["sentences"])
-            break
+        sentences_texts.append(topic["sentenceText"])
+
 
     combined_minutes = "\n".join(sentences_texts)
     return combined_minutes

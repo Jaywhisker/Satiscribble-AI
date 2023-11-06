@@ -30,6 +30,12 @@ async def queryGPT(query:list, model:str='gpt-3.5-turbo', temperature:float=0.2,
                 request_timeout=request_timeout,
             )
             
+
+            # if stream:
+            #     return StreamingResponse(streamGenerator(response),
+            #                             media_type='text/event-stream',
+            #                             headers=header)
+
             return response['choices'][0]['message']['content']
         
         except Exception as e:
