@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from microservice.track_minutes import *
 from microservice.document_qna import *
 from microservice.web_qna import *
+from microservice.summarisation import *
 from utils.createMongoDocument import initialiseMongoData
 from utils.mongoDBManager import MongoDBManager
 from utils.gptManager import streamGPTQuery

@@ -6,16 +6,18 @@ from utils.formatData import *
 from utils.mongoDBManager import MongoDBManager
 from utils.chromaDBManager import ChromaDBManager
 
-async def summariseText(topic_title: str, topic_id: str, minutes_id: str,chat_history_id: str):
+async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str, topic_title: str):
     
     openai.api_key = os.environ.get('OPENAI_API_KEY')
 
     mongoDB = MongoDBManager(minutes_id, chat_history_id)
     
-    content = mongoDB.read_MongoDB('minutes', False, topic_title, None)
+    content = mongoDB.read_MongoDB('minutes', False, topic_id, None)
+    print(content)
+
 
     #format minutes into a single string
-    formatted_minutes=formatPreSummaryMinutes(content, topic_title)
+    formatted_minutes=formatPreSummaryMinutes(content["sentences"], topic_id)
 
     #check if string is empty
     if not formatted_minutes.strip():
