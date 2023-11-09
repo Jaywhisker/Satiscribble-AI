@@ -88,6 +88,8 @@ def formatChatHistory(chat_history:list[dict]):
             formatted_chat_history: list of dictionary in the format [{role: user, content: query}, {role: assistant, content:response}, {}...]
     """
     formatted_chat_history = []
+    chat_history = [chat for chat in chat_history if 'sourcetopicIDs' not in chat]
+
     while len(chat_history) > 0:
         formatted_chat_history.append({'role': 'user', 'content': chat_history[0]['user']})
         formatted_chat_history.append({'role': 'assistant', 'content': chat_history[0]['assistant']})

@@ -53,6 +53,10 @@ class MongoDBManager():
                 raise HTTPException(status_code=422,detail="ChatHistory Document unfound in Database")
 
     
+    def read_glossary(self):
+        glossaryData = self.database.minutes.find_one({'_id': self.minutesID}, {"glossary": 1, "_id": 0})
+        return glossaryData
+
 
     async def update_agenda_meeting(self, new_data, agenda:bool):
         """
@@ -178,6 +182,48 @@ class MongoDBManager():
         return {"status": 200}
 
 
+    async def update_glossary(self, abbreviation:str, meaning:str, action:str):
+        """
+        Function to update the glossary
+
+        Args:
+            abbreviation (str): abbreviation of the term
+            meaning (str): full meaning
+            action (str): action to be done
+        """
+        filter_query = {"_id": self.minutesID}
+        array_filters = None
+        if action == 'new':
+            update_operation = {
+                "$push": {
+                    "glossary": {'abbreviation': abbreviation, "meaning": meaning}
+                }
+            }
+        
+        elif action == 'delete':
+            update_operation = {
+                "$pull": {
+                    "glossary": {'abbreviation': abbreviation, "meaning": meaning}
+                }
+            }
+
+        elif action == 'update': 
+            update_operation = {
+                "$set": {
+                    "glossary.$[abbrev].meaning" : meaning 
+                }
+            }
+
+            array_filters = [
+                {"abbrev.abbreviation": abbreviation},
+            ]
+        
+        update = self.database.minutes.update_one(filter_query, update_operation, array_filters=array_filters)
+        if not update.acknowledged:
+            raise HTTPException(status_code=422,detail="Unable to delete topic")
+
+        return {"status": 200}
+
 
     async def delete_topic(self, topic_id:str):
         """
@@ -213,6 +259,7 @@ class MongoDBManager():
             Args:
                 chat_history (dictionary): in the format of {'user': query, 'assistant': gpt response} 
                 query_type (string): only web/document, determines which db to update
+                topic_ids (list): list of unique topic ids
             
             Returns:
                 dictionary of status
@@ -227,13 +274,11 @@ class MongoDBManager():
                 query_type: chat_history
             }
         }
-
         update = self.database.chatHistory.update_one(filter_query, update_operation)
         if not update.acknowledged:
             raise HTTPException(status_code=422,detail="Unable to update chat history")
 
         return {'status': 200}
-
 
 
     async def clear_chat_history(self, query_type:str):

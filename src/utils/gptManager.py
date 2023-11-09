@@ -45,7 +45,7 @@ async def queryGPT(query:list, model:str='gpt-3.5-turbo', temperature:float=0.2,
 
 
 
-def streamGPTQuery(query:list, user_query:str, type:str, model:str='gpt-3.5-turbo', temperature:float=0.2, request_timeout:int=3, max_retries:int=3, header = None, mongoDB = None):
+def streamGPTQuery(query:list, user_query:str, type:str, model:str='gpt-3.5-turbo', temperature:float=0.2, request_timeout:int=3, max_retries:int=3, source_ids = None, mongoDB = None):
     """
         Function to query gpt and return STREAMED response
 
@@ -57,14 +57,19 @@ def streamGPTQuery(query:list, user_query:str, type:str, model:str='gpt-3.5-turb
             temperature (float, optional): temperature of model. Defaults to 0.2.
             request_timeout (int, optional): time in seconds before a response timeouts. Defaults to 3.
             max_retries (int, optional): maximum number of retries before throwing an error. Defaults to 3.
-            header (_type_, optional): header to be added to the response. Defaults to None.
-            mongoDB (_type_, optional): mongoDB instance to allow for updating of chatHistory. Defaults to None.
+            source_ids (list, optional): header to be added to the response. Defaults to None.
+            mongoDB (mongoDB, optional): mongoDB instance to allow for updating of chatHistory. Defaults to None.
 
         Returns:
             streamingResponse for fastAPI
     """
     openai.api_key = os.environ['OPENAI_API_KEY']
     retry_count = 0
+
+    header = {
+        "source_id": str(source_ids)
+    }
+
     while retry_count <= max_retries:
         try:
             response = openai.ChatCompletion.create(
@@ -75,7 +80,7 @@ def streamGPTQuery(query:list, user_query:str, type:str, model:str='gpt-3.5-turb
                 stream = True
             )
 
-            return StreamingResponse(streamGenerator(response, mongoDB, user_query, type),
+            return StreamingResponse(streamGenerator(response, mongoDB, user_query, type, source_ids),
                                     media_type='text/event-stream',
                                     headers=header)
         
@@ -90,7 +95,7 @@ def streamGPTQuery(query:list, user_query:str, type:str, model:str='gpt-3.5-turb
                 raise HTTPException(status_code=500, detail="GPT timeout, please check GPT server.")
 
 
-async def streamGenerator(response, mongoDB, user_query, type):
+async def streamGenerator(response, mongoDB, user_query, type, source_ids):
     """
         Function to prepare response for streaming
         If the response ended (by having chunk['choices'][0]['delta'] == {}), update mongoDB
@@ -99,7 +104,8 @@ async def streamGenerator(response, mongoDB, user_query, type):
             response (streaming_chunk): chunk of streaming response
             mongoDB: instance of mongoDB for updating chatHistory
             user_query: original user query
-            type: document / web for mongoDB to udpate
+            type: document / web for mongoDB to update
+            source_ids: update topic ids
     """
     full_response = ''
     try:
@@ -110,7 +116,11 @@ async def streamGenerator(response, mongoDB, user_query, type):
                 await asyncio.sleep(0.1)
             else:
                 if mongoDB:
-                    query_resp_pair = {'user': user_query, 'assistant': full_response}
+                    if source_ids != None:
+                        query_resp_pair = {'user': user_query, 'assistant': full_response, 'sourcetopicIDs': source_ids}
+                    else:
+                        query_resp_pair = {'user': user_query, 'assistant': full_response}
+
                     await mongoDB.update_chat_history(query_resp_pair, type)
     except asyncio.TimeoutError:
         raise HTTPException(status_code=504, detail="Stream timed out")
@@ -252,14 +262,13 @@ async def createStandAloneQuery(formatted_chat_history:list, query:str):
 
 
 
-async def documentQuery(query:str, context_dict:dict, header:dict):
+async def documentQuery(query:str, context_dict:dict):
     """
         Function to query GPT based on the minutes
 
         Args:
             query (string): reformatted user query
             context_dict (list): dictionary containing the context for gpt. In the format of {topic_title: topic_details}
-            header (dict): headers that contain the source_id to be sent back
 
         Returns:
             answer to the question

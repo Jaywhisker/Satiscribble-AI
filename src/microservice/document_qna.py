@@ -30,12 +30,9 @@ async def document_qna(query:str, mongoDB, minutes_id:str, k:int = 3):
 
     #querying chroma to get the related articles
     unique_parent_topics, context_dict = await chromaDB.query_collection(query, k)
-    header = {
-        "source_id": str(unique_parent_topics)
-    }
 
-    query_message = await documentQuery(query, context_dict, header)
+    query_message = await documentQuery(query, context_dict)
 
-    return header, query_message
+    return unique_parent_topics, query_message
 
         

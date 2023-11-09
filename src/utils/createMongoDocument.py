@@ -1,5 +1,6 @@
 import os
 import pymongo
+import datetime
 from fastapi import HTTPException
 
 def initialiseMongoData():
@@ -17,11 +18,12 @@ def initialiseMongoData():
 
         base_minutes_template = { "agenda": [],
                                     "meetingDetails": {
-                                        "date": None,
-                                        "location": None,
+                                        "date":  datetime.datetime.now(),
+                                        "location": "",
                                         "attendees": []
                                     },
-                                    "topics": []
+                                    "topics": [],
+                                    "glossary": []
                                 }
 
         base_chatHistory_template = { "document": [], "web": []}
@@ -35,7 +37,8 @@ def initialiseMongoData():
 
             return {"minutesID": str(minutes_result.inserted_id), "chatHistoryID": str(chat_result.inserted_id)}
 
-    except:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=422,detail="Unable to create document, is database up?")
 
 

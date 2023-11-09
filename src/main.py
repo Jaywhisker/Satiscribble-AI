@@ -33,6 +33,13 @@ class TrackMinutesRequest(BaseModel):
     minutesID: str
     chatHistoryID: str 
 
+class GlossaryUpdateRequest(BaseModel):
+    abbreviation: str
+    meaning: str
+    type: str
+    minutesID: str
+    chatHistoryID: str 
+
 class DeleteTopicRequest(BaseModel):
     topicID: str
     minutesID: str
@@ -68,9 +75,16 @@ async def root():
 async def create_document():
     return initialiseMongoData()
 
+
 @app.post("/read_history")
 async def handle_read_history(request_body: BaseRequest):
     return await read_history(request_body.minutesID, request_body.chatHistoryID)
+
+
+@app.post("/read_glossary")
+def read_glossary(request_body: BaseRequest):
+    mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
+    return mongoDB.read_glossary()
 
 
 @app.post("/update_agenda")
@@ -83,6 +97,12 @@ async def update_agenda(request_body: AgendaUpdateRequest):
 async def update_meeting(request_body: MeetingUpdateRequest):
     mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
     return await mongoDB.update_agenda_meeting(request_body.data, False) 
+
+
+@app.post("/update_glossary")
+async def update_glossary(request_body: GlossaryUpdateRequest):
+    mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
+    return await mongoDB.update_glossary(request_body.abbreviation, request_body.meaning, request_body.type)
 
 
 @app.post("/track_minutes")
@@ -99,8 +119,8 @@ async def handle_delete_topic(request_body: DeleteTopicRequest):
 @app.post("/document_query")
 async def handle_document_qna(request_body: QnA):
     mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
-    header, formatted_query_message =  await document_qna(request_body.query, mongoDB, request_body.minutesID)
-    return streamGPTQuery(formatted_query_message, user_query=request_body.query, type=request_body.type, request_timeout=5, header=header, mongoDB=mongoDB)
+    source_ids, formatted_query_message =  await document_qna(request_body.query, mongoDB, request_body.minutesID)
+    return streamGPTQuery(formatted_query_message, user_query=request_body.query, type=request_body.type, request_timeout=5, source_ids=source_ids, mongoDB=mongoDB)
 
 
 @app.post("/web_query")
