@@ -13,6 +13,14 @@ Afterwhich, enter the docker container terminal and run `uvicorn main:app --port
 uvicorn main:app --port=8000 --host=0.0.0.0
 ```
 
+# Tests
+All tests files are in the tests folder. To run the test file, head to your docker terminal (make sure the service is running) and enter the following commands
+```
+cd ../tests
+python test.py
+```
+The file should be able to run smoothly without any errors.
+
 # File structure
 This section will explain the file structure of this repository.
 
