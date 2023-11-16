@@ -1,12 +1,10 @@
 import openai
 import os
-import asyncio
 from utils.gptManager import *
 from utils.formatData import *
 from utils.mongoDBManager import MongoDBManager
-from utils.chromaDBManager import ChromaDBManager
 
-async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str, topic_title: str):
+async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str):
     
     openai.api_key = os.environ.get('OPENAI_API_KEY')
 
