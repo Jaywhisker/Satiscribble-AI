@@ -55,7 +55,7 @@ class ChromaDBManager():
 
 
 
-    async def upsert_embedding(self, sentenceID, sentenceText, metadata):
+    async def upsert_embedding(self, sentenceID:list, sentenceText:list, metadata:dict):
         """
             Function to upsert embeddings
 
@@ -64,24 +64,57 @@ class ChromaDBManager():
                 sentenceText (list): list of sentence text (str) to be updated
                 metadata (dict): dict in the format of {'topicID': topic_id}
         """
-        self.minutesCollection.upsert(ids= sentenceID, 
-                        metadatas= [metadata for i in range(len(sentenceID))],
-                        documents= sentenceText)
+        try:
+            self.minutesCollection.upsert(ids= sentenceID, 
+                            metadatas= [metadata for i in range(len(sentenceID))],
+                            documents= sentenceText)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to update database due to {e}")
 
 
     
-    async def delete_embedding(self, deletedIDs):
+    async def delete_embedding(self, deletedIDs:list):
         """
             Function to delete embeddings based on the specific ids
 
             Args:
                 deletedIDs (list): list of ids(str) to be deleted
         """
-        self.minutesCollection.delete(ids = deletedIDs)
-            
+        try:
+            self.minutesCollection.delete(ids = deletedIDs)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete embedding due to {e}")
+
+
+    async def delete_topic(self, topicID:int):
+        """
+            Function to delete embeddings of entire topic
+
+            Args:
+                topicID (int): topicID all minutes will be deleted from
+        """
+        try:
+            self.minutesCollection.delete(where= {"topicID": topicID})
+            return {'status': 200}
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete topic due to {e}")
 
 
     async def query_collection(self, query:str, k:int):
+        """
+        Function to query the database and retrieve context for document qna
+
+        Args:
+            query (str): user query
+            k (int): query will return top k results
+
+        Returns:
+            unique_parent_topics (list): list of topics that are use for context
+            context_dict (dict): dictionary {topicID: topicMinutes}
+        """
         try:
             results = self.minutesCollection.query(query_texts=query,
                                                 n_results=k,
@@ -112,7 +145,7 @@ class ChromaDBManager():
 
 
         except Exception as e:
-            print(e)
+            print("error", e)
             raise HTTPException(status_code=500, detail="Unable to retrieve minutes from chromaDB")
 
             
@@ -127,9 +160,12 @@ class ChromaDBManager():
             Returns:
                 dict of status 200
         """
-        self.chromaDB.delete_collection(collection_name)
-        return {'status': 200}
-    
+        try:
+            self.chromaDB.delete_collection(collection_name)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete collection due to {e}")
+
 
 
     def list_collection(self):
@@ -153,3 +189,18 @@ class ChromaDBManager():
         print(self.minutesCollection.get(include=['documents', 'metadatas']))
         return self.minutesCollection.get(include=['documents', 'metadatas'])
 
+
+    def delete_all_collections(self):
+        """
+            Function to delete all collections in database
+
+            Returns:
+                dict of status 200
+        """
+        try:
+            collection_list = self.list_collection()
+            for collection_name in collection_list:
+                self.delete_collection(collection_name.name)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete database due to {e}")
