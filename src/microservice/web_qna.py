@@ -14,9 +14,11 @@ async def web_query(question:str, mongoDB):
             updates the database as well
     """
     chat_history = mongoDB.read_MongoDB('chatHistory', False, None, 'web')
+    print(chat_history)
 
     if len(chat_history.get('web', [])) != 0:
         formattedChatHistory = formatChatHistory(chat_history.get('web', []))
+        print(formattedChatHistory)
     else:
         formattedChatHistory = []
 
