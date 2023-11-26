@@ -121,7 +121,7 @@ async def handle_delete_topic(request_body: DeleteTopicRequest):
     chromaDB = ChromaDBManager(request_body.minutesID)
     status1, status2 = await asyncio.gather(
                                     mongoDB.delete_topic(request_body.topicID), 
-                                    chromaDB.delete_topic(request_body.topicID))
+                                    chromaDB.delete_topic(int(request_body.topicID)))
     return status1
 
 @app.post("/document_query")
