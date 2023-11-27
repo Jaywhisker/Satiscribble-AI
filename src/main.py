@@ -70,10 +70,12 @@ app = FastAPI()
 async def root():
     return{"message": "hello world"}
 
-
+# Used to create a new chat history and minutes document
 @app.get("/create")
 async def create_document():
     return initialiseMongoData()
+
+# All post request will require a minutesID and chatHistoryID to access the database
 
 
 @app.post("/read_history")
