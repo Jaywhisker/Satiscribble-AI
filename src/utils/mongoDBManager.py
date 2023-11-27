@@ -1,6 +1,7 @@
 import pymongo
 import os
 from fastapi import HTTPException
+from datetime import datetime
 from bson import ObjectId
 
 
@@ -75,6 +76,11 @@ class MongoDBManager():
 
         elif not agenda and isinstance(new_data, dict):
             # new_data in the format of {date:xxx, location:xxx, attendees: []}
+            # needs to convert isoformat string to datetime object
+            iso_date_string = new_data['date']
+            iso_date_string = iso_date_string.replace("Z", "+00:00")
+            datetime_obj = datetime.fromisoformat(iso_date_string)
+            new_data['date'] = datetime_obj
             update_query = {"$set": {"meetingDetails": new_data}}
 
         else:
@@ -347,74 +353,5 @@ class MongoDBManager():
 
 
 
-
-
-# async def test():
-
-#     document_ids = initialiseMongoData()
-
-#     mongo = MongoDBManager(document_ids["minutesID"], document_ids["chatHistoryID"])
-#     new_data_agenda = ['create design system', 'create web experiment']
-#     new_data_meeting_details = {
-#         "date": datetime.datetime.now(),
-#         "location": "studio",
-#         "attendees": ['hn', 'jx', 'yl', 'wx']
-#     }
-
-#     new_topic_update = {'00': 'bulletpoint1', '01': 'bulletpoint2'}
-#     append_topic_update = {'02': 'bulletpoint3'}
-#     replace_topic_update = {'01': 'new bulletpoint2', '03': 'bulletpoint4', '03': 'new bulletpoint4'}
-
-    # try:
-        
-        # result = await mongo.update_agenda_meeting(new_data_agenda, True)
-        # print(result)
-        # result = await mongo.update_agenda_meeting(new_data_meeting_details, False)
-        # print(result)
-
-        # result = await mongo.update_topic_minutes(new_topic_update, True, '0', None)
-        # print(result)
-        # result = await mongo.update_topic_minutes(append_topic_update, False, '0', None)
-        # print(result)
-        # result = await mongo.update_topic_minutes(replace_topic_update, False, '0', None)
-        # print(result)
-
-        # result = await mongo.update_chat_history({'user': "what is the topic of work?",'assistant': "The topic can be found in ..."}, 'document')
-        # print(result)
-        # result = await mongo.update_chat_history({'user': "what about this?",'assistant': "The topic is about ..."}, 'document')
-        # print(result)
-        # result = await mongo.update_chat_history({'user': "what is 1+1",'assistant': "3"}, 'web')
-        # print(result)
-
-        # read_agenda = mongo.read_MongoDB('minutes', True, None, None)
-        # read_topic = mongo.read_MongoDB('minutes', False, '0', None)
-        # read_document_history = mongo.read_MongoDB('chatHistory', False, None, 'document')
-        # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
-        # print(read_agenda, read_topic, read_document_history, read_web_history)
-
-        # result = await mongo.clear_chat_history('web')
-        # print(result)
-        # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
-        # print(read_web_history)
-
-        # result = await mongo.delete_topic('0')
-        # print(result)
-        # read_topic = mongo.read_MongoDB('minutes', False, '0', None)
-        # print(read_topic)
-
-        # result = await mongo.delete_document(document_ids["minutesID"], 'minutes')
-        # print(result)
-
-        # result = await mongo.delete_all_documents('chatHistory')
-        # print(result)
-
-        # result = await mongo.delete_all_documents('minutes')
-        # print(result)
-
-    # except Exception as e:
-    #     print(f"Error: {e}")
-
-# if __name__ == "__main__":
-#     asyncio.run(test())
 
 

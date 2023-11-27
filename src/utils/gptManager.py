@@ -268,7 +268,7 @@ async def documentQuery(query:str, context_dict:dict):
 
         Args:
             query (string): reformatted user query
-            context_dict (list): dictionary containing the context for gpt. In the format of {topic_title: topic_details}
+            context_dict (dict): dictionary containing the context for gpt. In the format of {topic_title: topic_details}
 
         Returns:
             answer to the question
@@ -296,15 +296,16 @@ async def webQuery(query:str, context:list):
 
         Args:
             query (string): reformatted user query
-            context_dict (list): dictionary containing the context for gpt. In the format of {topic_title: topic_details}
+            context (list): 
 
         Returns:
             formatted query message
     """
     query_message = [
-            {"role": "system", "content": "You are an Simple question and answer Model. You do not have individuality, opinion or a personality. You will receive a question. Answer the question in the most straight forwawrd way possible. Minimising words where possible. Try and keep responses below 50 words."},
+            {"role": "system", "content": "You are an Simple question and answer Model. You do not have individuality, opinion or a personality. You will receive a question. Answer the question in the most straight forward way possible. Minimising words where possible. Try and keep responses below 50 words."},
         ]
     query_message = query_message + context
+    print(query_message)
     query_message.append({"role": "user", "content": query})
     return query_message
 

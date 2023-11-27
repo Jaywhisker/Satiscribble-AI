@@ -1,3 +1,4 @@
+import chromadb
 from fastapi import FastAPI, Body
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -59,7 +60,6 @@ class QnA(BaseModel):
 class SummarisationRequest(BaseModel):
     minutesID: str
     chatHistoryID: str
-    topicTitle: str
     topicID: str 
 
 
@@ -112,11 +112,19 @@ async def handle_track_minutes(request_body: TrackMinutesRequest):
     return await track_minutes(request_body.minutes, request_body.topicTitle, request_body.topicID, request_body.minutesID, request_body.chatHistoryID, request_body.abbreviation)
 
 
+@app.post("/summarise")
+async def handle_summarisation(request_body: SummarisationRequest):
+    return await summariseText(request_body.minutesID,request_body.chatHistoryID, request_body.topicID)
+
+
 @app.post("/delete_topic")
 async def handle_delete_topic(request_body: DeleteTopicRequest):
     mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
-    return await mongoDB.delete_topic(request_body.topicID)
-
+    chromaDB = ChromaDBManager(request_body.minutesID)
+    status1, status2 = await asyncio.gather(
+                                    mongoDB.delete_topic(request_body.topicID), 
+                                    chromaDB.delete_topic(int(request_body.topicID)))
+    return status1
 
 @app.post("/document_query")
 async def handle_document_qna(request_body: QnA):
@@ -137,26 +145,27 @@ async def handle_clear_chat(request_body:ClearChatHistory):
         mongoDB = MongoDBManager(request_body.minutesID, request_body.chatHistoryID)
         return await mongoDB.clear_chat_history(request_body.type)
 
-@app.post("/summarise")
-async def handle_summarisation(request_body: SummarisationRequest):
-    return await summariseText(
-        request_body.minutesID,
-        request_body.chatHistoryID,
-        request_body.topicID,  
-        request_body.topicTitle
-    )
 
 
 ##for our personal use, should never be called by frontend
 @app.post("/delete_document")
 async def handle_delete_document(collectionName: str = Body(...), documentID: str = Body(None), minutesID: str = Body(...), chatHistoryID: str = Body(...)):
     mongoDB = MongoDBManager(minutesID, chatHistoryID)
-    if documentID == None:
-        documentID = minutesID
+    chromaDB = ChromaDBManager(minutesID)
+    if documentID == None and collectionName == 'minutes':
+        documentID = minutesID 
+        chromaDB.delete_collection(documentID)
+
+    elif documentID == None and collectionName == 'chatHistory':
+        documentID = chatHistoryID
+    
     return await mongoDB.delete_document(documentID, collectionName)
 
 
 @app.post("/delete_collection")
 async def handle_delete_collection(collectionName: str = Body(...), minutesID: str = Body(...), chatHistoryID: str = Body(...)):
     mongoDB = MongoDBManager(minutesID, chatHistoryID)
+    chromaDB = ChromaDBManager(minutesID)
+    if collectionName == 'minutes':
+        chromaDB.delete_collection(minutesID)
     return await mongoDB.delete_all_documents(collectionName)

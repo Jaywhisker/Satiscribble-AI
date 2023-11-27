@@ -15,7 +15,7 @@ async def document_qna(query:str, mongoDB, minutes_id:str, k:int = 3):
             k (int, optional): Chroma similarity search returns k nearest neighbour. Defaults to 3.
 
         Returns:
-            header: response header in the format of "source_id": str(list of topic_ids context is pulled from)
+            unique_parent_topics: list of topic_ids context is pulled from
             query_message: formatted query message with context
     """
     chromaDB = ChromaDBManager(minutes_id)

@@ -7,11 +7,23 @@ This github is hosted on Docker. To set up your docker image, please follow the 
 cd build
 docker compose up
 ```
-Afterwhich, enter the docker container terminal and run `uvicorn main:app --port=8000 --host=0.0.0.0` to start the service.
+The docker file has been setup to automatically startup the FastAPI service once the container is up.<br/>
+If you update any of your code, restart the container to apply your changes to your service.<br/>
+
+If you prefer to start the service yourself, comment out the `COMMAND` function in docker-compose.yaml and rebuild your container. <br/>
+Afterwhich, enter the docker container terminal and run to start the service.
 
 ```
 uvicorn main:app --port=8000 --host=0.0.0.0
 ```
+
+# Tests
+All tests files are in the tests folder. To run the test file, head to your docker terminal (make sure the service is running) and enter the following commands
+```
+cd ../tests
+python test.py
+```
+The file should be able to run smoothly without any errors.
 
 # File structure
 This section will explain the file structure of this repository.
