@@ -319,7 +319,7 @@ async def test():
 
     #updating
     await testManager.update_agenda(['plan iter 3 timeline', 'frontend updates', 'web experiment planning'])
-
+    await testManager.update_meeting({'date': '2023-11-27T13:29:20.152Z', 'location': 'studio', 'attendees':['wx', 'yl', 'jx', 'hn']})
     #topics
     await testManager.track_minutes(topicTitle="iter 3 timeline", topicID="0", abbreviation=None, minutes="Need to do finish frontend and web experiment by 14 Aug\nWe have exactly 1.5 weeks left\nFrontend try to finish by Wednesday\nConsulting kenny for the web experiment on wednesday also\ndesign webexperiment task on wed aft consult\nconduct study on friday and next mon\nmeet again on tues to eval result and finish documents")
     await testManager.track_minutes(topicTitle="frontend updates", topicID="1", abbreviation=None, minutes="morgan finished his topic blocks\nhardcoded in pixels instead of using vw and vh\nneed to edit again as screen aspect ratio is not the same\nlooks jank on hubob side\njefferson is working on tables\ncurrently struggling because there is incompatibility between react versions\nmaterial ui needs react 17 but next needs react 18\nwill try a different lib, if cannot just do from scratch\nhubob and morgan has finished the rough web experiment pages\nthere is a bug where the delete isnt functioning because the space is a special character that messed up the length\nwill continue to try debugging\nif can't fix by friday will js tell users NO DELETE")

@@ -1,6 +1,7 @@
 import pymongo
 import os
 from fastapi import HTTPException
+from datetime import datetime
 from bson import ObjectId
 
 
@@ -75,6 +76,11 @@ class MongoDBManager():
 
         elif not agenda and isinstance(new_data, dict):
             # new_data in the format of {date:xxx, location:xxx, attendees: []}
+            # needs to convert isoformat string to datetime object
+            iso_date_string = new_data['date']
+            iso_date_string = iso_date_string.replace("Z", "+00:00")
+            datetime_obj = datetime.fromisoformat(iso_date_string)
+            new_data['date'] = datetime_obj
             update_query = {"$set": {"meetingDetails": new_data}}
 
         else:
