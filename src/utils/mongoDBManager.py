@@ -130,8 +130,23 @@ class MongoDBManager():
                 raise HTTPException(status_code=422,detail="Create topic in Database Failed")
 
         else:
-            for sentence_id in update_list.keys():
+            #Update topic title 
+            update_operation = {
+                "$set": {
+                    "topics.$[topic].topicTitle": topic_title
+                },
+            }
+            array_filters = [
+                        {"topic.topicID": topic_id},
+                    ]
+            
+            update = self.database.minutes.update_one(filter_query, update_operation, array_filters=array_filters)
 
+
+            if not update.acknowledged:
+                raise HTTPException(status_code=422,detail="Updating Database Failed")
+
+            for sentence_id in update_list.keys():
                 if update_list[sentence_id] == None:
                     #Delete sentence from database
                     update_operation = {
