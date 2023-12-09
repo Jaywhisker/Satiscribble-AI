@@ -1,9 +1,8 @@
 import pymongo
 import os
 from fastapi import HTTPException
+from datetime import datetime
 from bson import ObjectId
-
-from utils.createMongoDocument import initialiseMongoData
 
 
 class MongoDBManager():
@@ -16,7 +15,7 @@ class MongoDBManager():
 
 
 
-    def read_MongoDB(self, collection_name:str, agenda:bool, topic_id:str, chat_history_type:str):
+    def read_MongoDB(self, collection_name:str, agenda:bool= False, topic_id:str= None, chat_history_type:str= None):
         """
             Function to read from MongoDB
 
@@ -55,6 +54,10 @@ class MongoDBManager():
                 raise HTTPException(status_code=422,detail="ChatHistory Document unfound in Database")
 
     
+    def read_glossary(self):
+        glossaryData = self.database.minutes.find_one({'_id': self.minutesID}, {"glossary": 1, "_id": 0})
+        return glossaryData
+
 
     async def update_agenda_meeting(self, new_data, agenda:bool):
         """
@@ -73,6 +76,11 @@ class MongoDBManager():
 
         elif not agenda and isinstance(new_data, dict):
             # new_data in the format of {date:xxx, location:xxx, attendees: []}
+            # needs to convert isoformat string to datetime object
+            iso_date_string = new_data['date']
+            iso_date_string = iso_date_string.replace("Z", "+00:00")
+            datetime_obj = datetime.fromisoformat(iso_date_string)
+            new_data['date'] = datetime_obj
             update_query = {"$set": {"meetingDetails": new_data}}
 
         else:
@@ -122,8 +130,23 @@ class MongoDBManager():
                 raise HTTPException(status_code=422,detail="Create topic in Database Failed")
 
         else:
-            for sentence_id in update_list.keys():
+            #Update topic title 
+            update_operation = {
+                "$set": {
+                    "topics.$[topic].topicTitle": topic_title
+                },
+            }
+            array_filters = [
+                        {"topic.topicID": topic_id},
+                    ]
+            
+            update = self.database.minutes.update_one(filter_query, update_operation, array_filters=array_filters)
 
+
+            if not update.acknowledged:
+                raise HTTPException(status_code=422,detail="Updating Database Failed")
+
+            for sentence_id in update_list.keys():
                 if update_list[sentence_id] == None:
                     #Delete sentence from database
                     update_operation = {
@@ -180,6 +203,48 @@ class MongoDBManager():
         return {"status": 200}
 
 
+    async def update_glossary(self, abbreviation:str, meaning:str, action:str):
+        """
+        Function to update the glossary
+
+        Args:
+            abbreviation (str): abbreviation of the term
+            meaning (str): full meaning
+            action (str): action to be done
+        """
+        filter_query = {"_id": self.minutesID}
+        array_filters = None
+        if action == 'new':
+            update_operation = {
+                "$push": {
+                    "glossary": {'abbreviation': abbreviation, "meaning": meaning}
+                }
+            }
+        
+        elif action == 'delete':
+            update_operation = {
+                "$pull": {
+                    "glossary": {'abbreviation': abbreviation, "meaning": meaning}
+                }
+            }
+
+        elif action == 'update': 
+            update_operation = {
+                "$set": {
+                    "glossary.$[abbrev].meaning" : meaning 
+                }
+            }
+
+            array_filters = [
+                {"abbrev.abbreviation": abbreviation},
+            ]
+        
+        update = self.database.minutes.update_one(filter_query, update_operation, array_filters=array_filters)
+        if not update.acknowledged:
+            raise HTTPException(status_code=422,detail="Unable to delete topic")
+
+        return {"status": 200}
+
 
     async def delete_topic(self, topic_id:str):
         """
@@ -215,6 +280,7 @@ class MongoDBManager():
             Args:
                 chat_history (dictionary): in the format of {'user': query, 'assistant': gpt response} 
                 query_type (string): only web/document, determines which db to update
+                topic_ids (list): list of unique topic ids
             
             Returns:
                 dictionary of status
@@ -229,13 +295,11 @@ class MongoDBManager():
                 query_type: chat_history
             }
         }
-
         update = self.database.chatHistory.update_one(filter_query, update_operation)
         if not update.acknowledged:
             raise HTTPException(status_code=422,detail="Unable to update chat history")
 
         return {'status': 200}
-
 
 
     async def clear_chat_history(self, query_type:str):
@@ -304,74 +368,5 @@ class MongoDBManager():
 
 
 
-
-
-# async def test():
-
-#     document_ids = initialiseMongoData()
-
-#     mongo = MongoDBManager(document_ids["minutesID"], document_ids["chatHistoryID"])
-#     new_data_agenda = ['create design system', 'create web experiment']
-#     new_data_meeting_details = {
-#         "date": datetime.datetime.now(),
-#         "location": "studio",
-#         "attendees": ['hn', 'jx', 'yl', 'wx']
-#     }
-
-#     new_topic_update = {'00': 'bulletpoint1', '01': 'bulletpoint2'}
-#     append_topic_update = {'02': 'bulletpoint3'}
-#     replace_topic_update = {'01': 'new bulletpoint2', '03': 'bulletpoint4', '03': 'new bulletpoint4'}
-
-    # try:
-        
-        # result = await mongo.update_agenda_meeting(new_data_agenda, True)
-        # print(result)
-        # result = await mongo.update_agenda_meeting(new_data_meeting_details, False)
-        # print(result)
-
-        # result = await mongo.update_topic_minutes(new_topic_update, True, '0', None)
-        # print(result)
-        # result = await mongo.update_topic_minutes(append_topic_update, False, '0', None)
-        # print(result)
-        # result = await mongo.update_topic_minutes(replace_topic_update, False, '0', None)
-        # print(result)
-
-        # result = await mongo.update_chat_history({'user': "what is the topic of work?",'assistant': "The topic can be found in ..."}, 'document')
-        # print(result)
-        # result = await mongo.update_chat_history({'user': "what about this?",'assistant': "The topic is about ..."}, 'document')
-        # print(result)
-        # result = await mongo.update_chat_history({'user': "what is 1+1",'assistant': "3"}, 'web')
-        # print(result)
-
-        # read_agenda = mongo.read_MongoDB('minutes', True, None, None)
-        # read_topic = mongo.read_MongoDB('minutes', False, '0', None)
-        # read_document_history = mongo.read_MongoDB('chatHistory', False, None, 'document')
-        # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
-        # print(read_agenda, read_topic, read_document_history, read_web_history)
-
-        # result = await mongo.clear_chat_history('web')
-        # print(result)
-        # read_web_history = mongo.read_MongoDB('chatHistory', False, None, 'web')
-        # print(read_web_history)
-
-        # result = await mongo.delete_topic('0')
-        # print(result)
-        # read_topic = mongo.read_MongoDB('minutes', False, '0', None)
-        # print(read_topic)
-
-        # result = await mongo.delete_document(document_ids["minutesID"], 'minutes')
-        # print(result)
-
-        # result = await mongo.delete_all_documents('chatHistory')
-        # print(result)
-
-        # result = await mongo.delete_all_documents('minutes')
-        # print(result)
-
-    # except Exception as e:
-    #     print(f"Error: {e}")
-
-# if __name__ == "__main__":
-#     asyncio.run(test())
 
 

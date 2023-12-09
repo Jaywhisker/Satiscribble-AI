@@ -1,12 +1,10 @@
 import openai
 import os
-import asyncio
 from utils.gptManager import *
 from utils.formatData import *
 from utils.mongoDBManager import MongoDBManager
-from utils.chromaDBManager import ChromaDBManager
 
-async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str, topic_title: str):
+async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str):
     
     openai.api_key = os.environ.get('OPENAI_API_KEY')
 
@@ -28,5 +26,5 @@ async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str, to
     query_message.append({"role": "user", "content": formatted_minutes})
     
     #query for response and return json format
-    response = await queryGPT(query_message)
+    response = await queryGPT(query=query_message, request_timeout=5)
     return {"summary": response}

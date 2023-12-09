@@ -13,3 +13,4 @@ services:
         - ${AI_HOST_PORT}:${AI_SERVICE_PORT}
       env_file:
         - .env
+      command: uvicorn main:app --port=8000 --host=0.0.0.0

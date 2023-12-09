@@ -4,8 +4,20 @@ from utils.formatData import *
 from utils.gptManager import *
 
 
-async def document_qna(query:str, minutes_id:str,  chat_history_id: str, k:int = 3):
-    mongoDB = MongoDBManager(minutes_id, chat_history_id)
+async def document_qna(query:str, mongoDB, minutes_id:str, k:int = 3):
+    """
+        Reformats user query to a standalone question before extracting the context from chromaDB and reformatting the context
+
+        Args:
+            query (str): User query
+            mongoDB (_type_): mongoDB instance to read chatHistory
+            minutes_id (str): The minutes_id for chroma
+            k (int, optional): Chroma similarity search returns k nearest neighbour. Defaults to 3.
+
+        Returns:
+            unique_parent_topics: list of topic_ids context is pulled from
+            query_message: formatted query message with context
+    """
     chromaDB = ChromaDBManager(minutes_id)
 
     #get chat history
@@ -18,12 +30,9 @@ async def document_qna(query:str, minutes_id:str,  chat_history_id: str, k:int =
 
     #querying chroma to get the related articles
     unique_parent_topics, context_dict = await chromaDB.query_collection(query, k)
-    response = await documentQuery(query, context_dict)
 
-    #update mongoDB
-    query_resp_pair = {'user': query, 'assistant': response}
-    await mongoDB.update_chat_history(query_resp_pair, 'document')
+    query_message = await documentQuery(query, context_dict)
 
-    return {'source_ids': unique_parent_topics, 'response': response}
+    return unique_parent_topics, query_message
 
         

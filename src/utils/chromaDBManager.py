@@ -1,5 +1,4 @@
 import os
-from unittest import result
 import chromadb
 from chromadb.utils import embedding_functions
 from fastapi import HTTPException
@@ -20,14 +19,14 @@ class ChromaDBManager():
 
     async def update_embeddings(self, update_list:dict, topic_id: str, topic_title:str):
         """
-        Function to update vector embeddings inside chrome
+            Function to update vector embeddings inside chrome
 
-        Args:
-            update_list (dict): dictionary in the format of {sentenceID: sentenceText} that needs to be updated, will be {sentenceID: None} if to be deleted
-            topic_id (str): string containing the topic id, will be the metadata (defines the parent document)
+            Args:
+                update_list (dict): dictionary in the format of {sentenceID: sentenceText} that needs to be updated, will be {sentenceID: None} if to be deleted
+                topic_id (str): string containing the topic id, will be the metadata (defines the parent document)
 
-        Returns:
-            dictionary of status 200
+            Returns:
+                dictionary of status 200
         """
         meta_data = {'topicID': topic_id, 'topicTitle': topic_title if topic_title!= None else 'No Title'}
         update_sentenceID = []
@@ -56,33 +55,66 @@ class ChromaDBManager():
 
 
 
-    async def upsert_embedding(self, sentenceID, sentenceText, metadata):
+    async def upsert_embedding(self, sentenceID:list, sentenceText:list, metadata:dict):
         """
-        Function to upsert embeddings
+            Function to upsert embeddings
 
-        Args:
-            sentenceID (list): list of ids(str) to be updated
-            sentenceText (list): list of sentence text (str) to be updated
-            metadata (dict): dict in the format of {'topicID': topic_id}
+            Args:
+                sentenceID (list): list of ids(str) to be updated
+                sentenceText (list): list of sentence text (str) to be updated
+                metadata (dict): dict in the format of {'topicID': topic_id}
         """
-        self.minutesCollection.upsert(ids= sentenceID, 
-                        metadatas= [metadata for i in range(len(sentenceID))],
-                        documents= sentenceText)
+        try:
+            self.minutesCollection.upsert(ids= sentenceID, 
+                            metadatas= [metadata for i in range(len(sentenceID))],
+                            documents= sentenceText)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to update database due to {e}")
 
 
     
-    async def delete_embedding(self, deletedIDs):
+    async def delete_embedding(self, deletedIDs:list):
         """
-        Function to delete embeddings based on the specific ids
+            Function to delete embeddings based on the specific ids
 
-        Args:
-            deletedIDs (list): list of ids(str) to be deleted
+            Args:
+                deletedIDs (list): list of ids(str) to be deleted
         """
-        self.minutesCollection.delete(ids = deletedIDs)
-            
+        try:
+            self.minutesCollection.delete(ids = deletedIDs)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete embedding due to {e}")
+
+
+    async def delete_topic(self, topicID:int):
+        """
+            Function to delete embeddings of entire topic
+
+            Args:
+                topicID (int): topicID all minutes will be deleted from
+        """
+        try:
+            self.minutesCollection.delete(where= {"topicID": topicID})
+            return {'status': 200}
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete topic due to {e}")
 
 
     async def query_collection(self, query:str, k:int):
+        """
+        Function to query the database and retrieve context for document qna
+
+        Args:
+            query (str): user query
+            k (int): query will return top k results
+
+        Returns:
+            unique_parent_topics (list): list of topics that are use for context
+            context_dict (dict): dictionary {topicID: topicMinutes}
+        """
         try:
             results = self.minutesCollection.query(query_texts=query,
                                                 n_results=k,
@@ -113,32 +145,35 @@ class ChromaDBManager():
 
 
         except Exception as e:
-            print(e)
+            print("error", e)
             raise HTTPException(status_code=500, detail="Unable to retrieve minutes from chromaDB")
 
             
     
     def delete_collection(self, collection_name:str):
         """
-        Function to delete collection from chromaDB
+            Function to delete collection from chromaDB
 
-        Args:
-            collection_name (str): Name of collection to be deleted
+            Args:
+                collection_name (str): Name of collection to be deleted
 
-        Returns:
-            dict of status 200
+            Returns:
+                dict of status 200
         """
-        self.chromaDB.delete_collection(collection_name)
-        return {'status': 200}
-    
+        try:
+            self.chromaDB.delete_collection(collection_name)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete collection due to {e}")
+
 
 
     def list_collection(self):
         """
-        Function to retrieve all collections in database
+            Function to retrieve all collections in database
 
-        Returns:
-            list of all available collections
+            Returns:
+                list of all available collections
         """
         print(self.chromaDB.list_collections())
         return self.chromaDB.list_collections()
@@ -146,11 +181,26 @@ class ChromaDBManager():
 
     def get_documents(self):
         """
-        Function to retrieve all documents inside collection
+            Function to retrieve all documents inside collection
 
-        Returns:
-            dictionary of all documents
+            Returns:
+                dictionary of all documents
         """
         print(self.minutesCollection.get(include=['documents', 'metadatas']))
         return self.minutesCollection.get(include=['documents', 'metadatas'])
 
+
+    def delete_all_collections(self):
+        """
+            Function to delete all collections in database
+
+            Returns:
+                dict of status 200
+        """
+        try:
+            collection_list = self.list_collection()
+            for collection_name in collection_list:
+                self.delete_collection(collection_name.name)
+            return {'status': 200}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Unable to delete database due to {e}")

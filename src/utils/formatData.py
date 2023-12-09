@@ -3,14 +3,14 @@ from fastapi import HTTPException
 
 def formatTextMinutes(text_minutes:str, topic_id:str):
     """
-    Format text minutes where each bullet point is seperated by a \n
+        Format text minutes where each bullet point is seperated by a \n
 
-    Args:
-        text_minutes (string): each bullet point is seperated by \n
-        topic_id  (string): topic id of the text_minutes
+        Args:
+            text_minutes (string): each bullet point is seperated by \n
+            topic_id  (string): topic id of the text_minutes
 
-    Return:
-        dictionary in the format of {sentenceID: sentenceText}
+        Return:
+            dictionary in the format of {sentenceID: sentenceText}
     """
     minutes_dictionary = {}
     list_of_sentences = text_minutes.split("\n")
@@ -23,13 +23,13 @@ def formatTextMinutes(text_minutes:str, topic_id:str):
 
 def formatMongoMinutes(mongo_minutes:list):
     """
-    Format mongoDB minutes in the format of [{sentenceID:xx, sentenceText:yy}, ...]
+        Format mongoDB minutes in the format of [{sentenceID:xx, sentenceText:yy}, ...]
 
-    Args:
-        mongo_minutes (list): each bullet point in a dictionary
-    
-    Return:
-        dictionary in the format of {sentenceID: sentenceText}
+        Args:
+            mongo_minutes (list): each bullet point in a dictionary
+        
+        Return:
+            dictionary in the format of {sentenceID: sentenceText}
     """
     minutes_dictionary = {}
     for bullet_point in mongo_minutes:
@@ -41,15 +41,15 @@ def formatMongoMinutes(mongo_minutes:list):
 # ########### New Stuff ############
 def formatTextMinutesList(text_minutes: str):
     """
-    Format text minutes where each bullet point is seperated by a \n
-    into a list for the chatgpt functions
+        Format text minutes where each bullet point is seperated by a \n
+        into a list for the chatgpt functions
 
-    Args:
-        text_minutes (string): each bullet point is seperated by \n
-        (The function will also ignore double \n)
+        Args:
+            text_minutes (string): each bullet point is seperated by \n
+            (The function will also ignore double \n)
 
-    Return:
-        dictionary in the format of [sentence1, sentence2, ...]
+        Return:
+            dictionary in the format of [sentence1, sentence2, ...]
     """
     sentences = re.split(r'(?<=[.!?])\s+|\n+', text_minutes)
     sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
@@ -59,15 +59,15 @@ def formatTextMinutesList(text_minutes: str):
 
 def  createContext(text_minutes:str, min_context:int = 3):
     """
-    Takes in a list of sentences and returns the last min_context sentences as a list
-    If the number of sentences is less than the min_context, then return all the sentences
+        Takes in a list of sentences and returns the last min_context sentences as a list
+        If the number of sentences is less than the min_context, then return all the sentences
 
-    Args:
-        text_minutes (string): each bullet point is seperated by \n
-        min_context (int): number of sentences to return
+        Args:
+            text_minutes (string): each bullet point is seperated by \n
+            min_context (int): number of sentences to return
 
-    Return:
-        dictionary in the format of [sentence1, sentence2, ...]
+        Return:
+            dictionary in the format of [sentence1, sentence2, ...]
     """
     # We could combine the functions together, something to decide ltr
     sentences = formatTextMinutesList(text_minutes)
@@ -79,15 +79,17 @@ def  createContext(text_minutes:str, min_context:int = 3):
 
 def formatChatHistory(chat_history:list[dict]):
     """
-    Function to format chatHistory nicely into a list of dictionary for chatCompletetion
+        Function to format chatHistory nicely into a list of dictionary for chatCompletetion
 
-    Args:
-        chat_history (list[dict]): list of dictionary in the format of [{user: query, assistant: response}, {user:query, assistance: response}]
+        Args:
+            chat_history (list[dict]): list of dictionary in the format of [{user: query, assistant: response}, {user:query, assistance: response}]
 
-    Returns:
-        formatted_chat_history: list of dictionary in the format [{role: user, content: query}, {role: assistant, content:response}, {}...]
+        Returns:
+            formatted_chat_history: list of dictionary in the format [{role: user, content: query}, {role: assistant, content:response}, {}...]
     """
     formatted_chat_history = []
+    chat_history = [chat for chat in chat_history if 'sourcetopicIDs' not in chat]
+
     while len(chat_history) > 0:
         formatted_chat_history.append({'role': 'user', 'content': chat_history[0]['user']})
         formatted_chat_history.append({'role': 'assistant', 'content': chat_history[0]['assistant']})
