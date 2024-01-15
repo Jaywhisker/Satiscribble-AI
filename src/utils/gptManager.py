@@ -4,6 +4,7 @@ import openai
 import os
 from starlette.responses import StreamingResponse
 import asyncio
+from utils.formatData import *
 
 async def queryGPT(query:list, model:str='gpt-3.5-turbo', temperature:float=0.2, request_timeout:int=3, max_retries:int=3):
     """
@@ -167,27 +168,53 @@ async def TopicTracker(context: list):
 
 
 
-async def AgendaTracker(context: list, agenda: list):
+async def AgendaTracker(current_minutes: str, topic_title:str, agenda: list):
     """
         Return True or False on whether the current sentence is still cohernt with the agenda of the meeting.
 
         Args:
-            context: the "min_context" number of sentences to be used as context for chatgpt
+            current_minutes: existing minutes on the frontend
+            topic_title: title of the topic block
             agenda: the list of agenda items
         Return:
             True or False 
-            if Chatgpt returns something other than T/F, then we will print a statement and take as False
+            if Chatgpt returns something other than T/F, then we will print a statement and take as True
     """
-    if len(context) <= 1:
-        return True
-    sentences = ' '.join(context)
+    # check how many sentences in meeting minutes
+    sentence_list = formatTextMinutesList(current_minutes)
+    if len(sentence_list) <= 1:
+        return True #return true is only 1 sentence 
+    
+    # create agenda context
+    agenda_context = ""
+    for i, agenda_sentence in enumerate(agenda):
+        agenda_context+= f"{i+1}. {agenda_sentence}\n"
+
+    # check if there is a unique topic title 
+    default_topic_title = topicTitle_match(topic_title)
+    minutes_context = ""
+    if default_topic_title: #include title if unique
+        minutes_context += f"Meeting Minutes title: {topic_title}\n"
+
+    minutes_context += f"Meeting Minutes details:\n{current_minutes}"
+
     ### GPT stuff ###
     openai.api_key = os.environ['OPENAI_API_KEY']
+
     query_message = [
-    {"role": "system", "content": "You are a AgendaTracker model. You do not have individuality, opinion or a personality. You can only reply in True or False. You will expect a list of bullet points that was recently mentioned and a list of potential Agenda items. Return False if the list of bullet points is not related to any of the agenda items. Return True if the list of sentences is related or somewhat related with the agenda items. Do note that as these are bullet points, they may not be complete sentences."},
-    ]
-    user_input = {"role": "user", "content": "AgendaItems:" + str(agenda) + ", Sentences:" + sentences}
-    query_message.append(user_input)
+    {"role": "system", "content": 
+    f"""
+    Given a paragraph of meeting minutes, determine a list of topics for the paragraph, never return the topics. 
+    Determine the relevancy between the keywords and any of the agendas.
+    Return only a boolean of True or False if there is at least one relevant agenda.
+    =========================================
+    Agenda:
+    {agenda_context}
+    -----------------------------------------
+    {minutes_context}
+    =========================================
+    """}]
+
     response = await queryGPT(query_message, request_timeout=5)
     ###
     if response == "True":
@@ -195,8 +222,8 @@ async def AgendaTracker(context: list, agenda: list):
     elif response == "False":
         return False
     else:
-        print("errornous GPT response, taking as False and skipping")
-        return False
+        print("errornous GPT response, taking as True and skipping")
+        return True
 
 
 
