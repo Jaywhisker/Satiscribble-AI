@@ -29,6 +29,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
     formatted_new_minutes =  formatTextMinutes(new_minutes, topic_id)
 
     newMinutesList = createContext(new_minutes)
+
     existingAgenda = mongoDB.read_MongoDB('minutes', True, None, None)
     existingAgenda = existingAgenda['agenda']
     
@@ -36,7 +37,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
         # New topic block
         Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
                                                             TopicTracker(newMinutesList),
-                                                            AgendaTracker(newMinutesList, existingAgenda),
+                                                            AgendaTracker(new_minutes, topic_title, existingAgenda),
                                                             GlossaryDetector(newMinutesList,abbreviation),
                                                             mongoDB.update_topic_minutes(formatted_new_minutes, True, topic_id, topic_title),
                                                             chromaDB.update_embeddings(formatted_new_minutes, topic_id, topic_title)
@@ -62,7 +63,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
         
         Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
                                                         TopicTracker(newMinutesList),
-                                                        AgendaTracker(newMinutesList, existingAgenda),
+                                                        AgendaTracker(new_minutes, topic_title, existingAgenda),
                                                         GlossaryDetector(newMinutesList,abbreviation),
                                                         mongoDB.update_topic_minutes(update_dict, False, topic_id, topic_title),
                                                         chromaDB.update_embeddings(update_dict, topic_id, topic_title)

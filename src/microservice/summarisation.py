@@ -23,14 +23,12 @@ async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str):
 
     #prepare prompt for OpenAI
     query_message=[{"role": "system", "content": 
-                    f"""
-                        Given a paragraph of topic minutes, your task is to write a sypnosis of the content of the meeting minutes.
-                        Your sypnosis will only be one line with less than 20 words in a third person point of view.
-                        Priority should be given to deadlines and action items.
-                        ===============================
-                        {formatted_minutes}
-                        ===============================
-                    """
+                    f"""Given a paragraph of topic minutes, your task is to write a sypnosis of the content of the meeting minutes.
+                    Your sypnosis will only be one line with less than 20 words in a third person point of view.
+                    Priority should be given to deadlines and action items.
+                    ===============================
+                    {formatted_minutes}
+                    ==============================="""
                     }]
     
     # query_message.append({"role": "user", "content": formatted_minutes})
