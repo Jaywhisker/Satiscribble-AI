@@ -43,15 +43,13 @@ class ChromaDBManager():
         try:
             if len(update_sentenceID) > 0:
                 await self.upsert_embedding(update_sentenceID, update_sentenceText, meta_data)
-            
             if len(delete_sentenceID) > 0:
                 await self.delete_embedding(delete_sentenceID)
-            
             return {'status': 200}
     
         except Exception as e:
-            print(e)
-            raise HTTPException(status_code=500, detail="Unable to update chromaDB")
+            print('error', e)
+            raise HTTPException(status_code=500, detail="Unable to update embeddings in chromaDB")
 
 
 
