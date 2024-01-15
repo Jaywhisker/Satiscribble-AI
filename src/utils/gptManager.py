@@ -215,7 +215,7 @@ async def AgendaTracker(current_minutes: str, topic_title:str, agenda: list):
     =========================================
     """}]
 
-    response = await queryGPT(query_message, request_timeout=5)
+    response = await queryGPT(query_message, temperature=0.1, request_timeout=5)
     ###
     if response == "True":
         return True
