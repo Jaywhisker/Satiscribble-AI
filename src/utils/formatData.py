@@ -97,7 +97,7 @@ def formatChatHistory(chat_history:list[dict]):
 
     return formatted_chat_history
 
-def formatPreSummaryMinutes(topics: list, topic_id: str) -> str:
+def formatPreSummaryMinutes(topics: list, topic_title: str) -> str:
     """
     Function to format chatHistory nicely into a list of dictionary for chatCompletetion
 
@@ -105,7 +105,7 @@ def formatPreSummaryMinutes(topics: list, topic_id: str) -> str:
         topics (list[dict]): list of dictionary where each dictionary represents a topic
         topic_title: title of minutes to be compiled
     Returns:
-        combined_minutes: single string with all the sentences combined seprated by a newline character
+        combined_minutes: single string with all the sentences combined seperated by a newline character
     """
     sentences_texts = []
 
@@ -114,5 +114,15 @@ def formatPreSummaryMinutes(topics: list, topic_id: str) -> str:
 
 
     combined_minutes = "\n".join(sentences_texts)
+    if topic_title:
+        combined_minutes = f"Topic Title: {topic_title}\n=======\nTopic Minutes: {combined_minutes}\n======="
+    
+    print(combined_minutes)
     return combined_minutes
+
+
+def topicTitle_match(text):
+    pattern = re.compile(r'Topic \d+$')
+    match = pattern.match(text)
+    return match is not None
 

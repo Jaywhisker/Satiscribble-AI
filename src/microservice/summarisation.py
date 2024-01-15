@@ -13,17 +13,25 @@ async def summariseText(minutes_id: str, chat_history_id: str, topic_id: str):
     content = mongoDB.read_MongoDB('minutes', False, topic_id, None)
     print(content)
 
-
+    topicTitleExist = topicTitle_match(content['topicTitle'])
     #format minutes into a single string
-    formatted_minutes=formatPreSummaryMinutes(content["sentences"], topic_id)
+    formatted_minutes = formatPreSummaryMinutes(content["sentences"], content['topicTitle'] if not topicTitleExist else None)
 
     #check if string is empty
     if not formatted_minutes.strip():
         return {"summary": "Nothing to summarise."}
 
     #prepare prompt for OpenAI
-    query_message=[{"role": "system", "content": "You are a helpful summarizing model called CuriousCat. You do not have individuality, opinion or a personality. Please summarize the following paragraph in a maximum of 2 sentences or less. Make it concise, with all important details retained. The summary must have a MAX WORD LIMIT OF 80 WORDS, focusing on readability."},]
-    query_message.append({"role": "user", "content": formatted_minutes})
+    query_message=[{"role": "system", "content": 
+                    f"""Given a paragraph of topic minutes, your task is to write a sypnosis of the content of the meeting minutes.
+                    Your sypnosis will only be one line with less than 20 words in a third person point of view.
+                    Priority should be given to deadlines and action items.
+                    ===============================
+                    {formatted_minutes}
+                    ==============================="""
+                    }]
+    
+    # query_message.append({"role": "user", "content": formatted_minutes})
     
     #query for response and return json format
     response = await queryGPT(query=query_message, request_timeout=5)
