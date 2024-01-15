@@ -30,7 +30,6 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
 
     newMinutesList = createContext(new_minutes)
     existingAgenda = mongoDB.read_MongoDB('minutes', True, None, None)
-    print(existing_minutes, formatted_new_minutes, existingAgenda)
     existingAgenda = existingAgenda['agenda']
     
     if existing_minutes == None:
