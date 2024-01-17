@@ -36,7 +36,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
     if existing_minutes == None:
         # New topic block
         Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
-                                                            TopicTracker(newMinutesList),
+                                                            TopicTracker(newMinutesList, topic_title),
                                                             AgendaTracker(new_minutes, topic_title, existingAgenda),
                                                             GlossaryDetector(newMinutesList,abbreviation),
                                                             mongoDB.update_topic_minutes(formatted_new_minutes, True, topic_id, topic_title),
@@ -62,7 +62,7 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
                 i += 1
         
         Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
-                                                        TopicTracker(newMinutesList),
+                                                        TopicTracker(newMinutesList, topic_title),
                                                         AgendaTracker(new_minutes, topic_title, existingAgenda),
                                                         GlossaryDetector(newMinutesList,abbreviation),
                                                         mongoDB.update_topic_minutes(update_dict, False, topic_id, topic_title),
