@@ -128,27 +128,32 @@ async def streamGenerator(response, mongoDB, user_query, type, source_ids):
     
 
 
-async def TopicTracker(context: list):
-    """
-        Return True or False on whether the current sentence is still cohernt with the rest of the paragraph.
-
-        Args:
-            context: the "min_context" number of sentences to be used as context for chatgpt
-
-        Return:
-            True or False 
-            if Chatgpt returns something other than T/F, then we will print a statement and take as False
-    """
+async def TopicTracker(context: list, topic_title: str):
     if len(context) <= 1:
         return True
-    sentences = ' '.join(context)
+    current_minutes = '--'.join(context)
+    default_topic_title = topicTitle_match(topic_title)
+    minutes_context = ""
+    if default_topic_title: #include title if unique
+        minutes_context += f"Meeting Minutes title: {topic_title}\n"
+
+    minutes_context += f"Meeting Minutes details:\n{current_minutes}"
+
     ### GPT stuff ###
     openai.api_key = os.environ['OPENAI_API_KEY']
+    
     query_message = [
-    {"role": "system", "content": "You are a topictracker model. You do not have individuality, opinion or a personality. You can only reply in True or False. You will expect a list of sentences. Return False if the last sentence is incoherent with the rest of the paragraph. Return True if the last sentence is coherent with the rest of the paragraph. If the subject of a sentence does  not fit in with the current context, it is most likely incoherent and should return False."},
-    ]
-    user_input = {"role": "user", "content": sentences}
-    query_message.append(user_input)
+    {"role": "system", "content": 
+    f"""
+    You are given a paragraph of meeting minutes, where each chunk is separated by --.
+    Determine if the last chunk is relevant to the rest of the paragraph.
+    Return only a boolean of True or False.
+    =========================================
+    Minutes:
+    -----------------------------------------
+    {minutes_context}
+    =========================================
+    """}]
 
     response = await queryGPT(query_message, request_timeout=5)
 
