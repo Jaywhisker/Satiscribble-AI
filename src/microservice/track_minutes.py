@@ -28,17 +28,15 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
     existing_minutes = mongoDB.read_MongoDB('minutes', False, topic_id, None)
     formatted_new_minutes =  formatTextMinutes(new_minutes, topic_id)
 
-    newMinutesList = createContext(new_minutes)
-
     existingAgenda = mongoDB.read_MongoDB('minutes', True, None, None)
     existingAgenda = existingAgenda['agenda']
     
     if existing_minutes == None:
         # New topic block
         Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
-                                                            TopicTracker(newMinutesList, topic_title),
+                                                            TopicTracker(new_minutes, topic_title),
                                                             AgendaTracker(new_minutes, topic_title, existingAgenda),
-                                                            GlossaryDetector(newMinutesList,abbreviation),
+                                                            GlossaryDetector(new_minutes, topic_title,abbreviation),
                                                             mongoDB.update_topic_minutes(formatted_new_minutes, True, topic_id, topic_title),
                                                             chromaDB.update_embeddings(formatted_new_minutes, topic_id, topic_title)
                                                         )
@@ -62,9 +60,9 @@ async def track_minutes(new_minutes:str, topic_title:str, topic_id:str, minutes_
                 i += 1
         
         Topic, Agenda, Glossary, MongoStatus, ChromaStatus = await asyncio.gather(
-                                                        TopicTracker(newMinutesList, topic_title),
+                                                        TopicTracker(new_minutes, topic_title),
                                                         AgendaTracker(new_minutes, topic_title, existingAgenda),
-                                                        GlossaryDetector(newMinutesList,abbreviation),
+                                                        GlossaryDetector(new_minutes, topic_title,abbreviation),
                                                         mongoDB.update_topic_minutes(update_dict, False, topic_id, topic_title),
                                                         chromaDB.update_embeddings(update_dict, topic_id, topic_title)
                                                     )
