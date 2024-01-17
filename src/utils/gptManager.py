@@ -133,10 +133,23 @@ async def streamGenerator(response, mongoDB, user_query, type, source_ids):
     
 
 
-async def TopicTracker(context: list, topic_title: str):
-    if len(context) <= 1:
-        return True
-    current_minutes = '--'.join(context)
+async def TopicTracker(current_minutes: str, topic_title: str):
+    """
+        Return True or False on whether the current sentence is still coherent with the topic block.
+        
+        Args:
+            current_minutes: existing minutes on the frontend
+            topic_title: title of the topic block
+        Return:
+            True or False 
+            if Chatgpt returns something other than T/F, then we will print a statement and take as True
+    """
+    # check how many sentences in meeting minutes
+    sentence_list = formatTextMinutesList(current_minutes)
+    if len(sentence_list) <= 3:
+        return True #return true is only 1 sentence 
+
+    # check if there is a unique topic title 
     default_topic_title = topicTitle_match(topic_title)
     minutes_context = ""
     if default_topic_title: #include title if unique
@@ -149,20 +162,16 @@ async def TopicTracker(context: list, topic_title: str):
     
     query_message = [
     {"role": "system", "content": 
-    f"""
-    You are given a paragraph of meeting minutes, where each chunk is separated by --.
-    Determine if the last chunk is relevant to the rest of the paragraph.
-    Return only a boolean of True or False.
+    f"""Given a paragraph of meeting minutes, evaluate if the paragraph is cohesive and related to the Meeting Minutes title if there is one. 
+    Be lenient.
+    Return a boolean of True or False.
     =========================================
-    Minutes:
-    -----------------------------------------
     {minutes_context}
     =========================================
     """}]
 
     response = await queryGPT(query_message, request_timeout=5)
 
-    ### 
     if response == "True":
         return True
     elif response == "False":
@@ -175,7 +184,7 @@ async def TopicTracker(context: list, topic_title: str):
 
 async def AgendaTracker(current_minutes: str, topic_title:str, agenda: list):
     """
-        Return True or False on whether the current sentence is still cohernt with the agenda of the meeting.
+        Return True or False on whether the current sentence is still coherent with the agenda of the meeting.
 
         Args:
             current_minutes: existing minutes on the frontend
@@ -233,30 +242,42 @@ async def AgendaTracker(current_minutes: str, topic_title:str, agenda: list):
 
 
 
-async def GlossaryDetector(context: list, abbreviation:str):
+async def GlossaryDetector(current_minutes: str, topic_title:str, abbreviation:str):
     """
         Return what the abbreviation stands for in the context of the sentences provided
 
         Args:
-            context: the "min_context" number of sentences to be used as context for chatgpt
+            current_minutes: existing minutes on the frontend
+            topic_title: title of the topic block
             abbreviation: the abbreviation to be defined
         Return:
-            number of words equivilant to the number of letters in the Abbreviation provided    ]
+            number of words equivilant to the number of letters in the Abbreviation provided
     """
     if abbreviation == None:
         return None
     else:
-        sentences = ' '.join(context)
+        # check if there is a unique topic title 
+        default_topic_title = topicTitle_match(topic_title)
+        minutes_context = ""
+        if default_topic_title: #include title if unique
+            minutes_context += f"Meeting Minutes title: {topic_title}\n"
+
+        minutes_context += f"Meeting Minutes details:\n{current_minutes}"
+
         ### GPT stuff ###
         openai.api_key = os.environ['OPENAI_API_KEY']
         query_message = [
-        {"role": "system", "content": "You are an Abbreviation DetectionModel. You do not have individuality, opinion or a personality. Expect an abbreviation and several sentences for the context of the word. Your response will be what the abbreviation stands for in the context of the sentences provided. Your responses will only contain a number of words equivilant to the number of letters in the Abbreviation provided. The only exception are short function words where appropriate. Each word will start with their corresponding letter in the abbreviation. This is the format of response: '[abbreviation]: [Your best guess on what the abbreviation means]'"},
-        ]
-        user_input = {"role": "user", "content": "Abbreviation: " + abbreviation + ", Context:" + sentences}
-        query_message.append(user_input)
+        {"role": "system", "content": 
+        f"""Given a paragraph of meeting minutes and an abbreviation, determine what does the abbreviation mean in the meeting minutes context.
+        Return your response in the format: '[abbreviation]: [Your best guess on what the abbreviation means]'.
+        =========================================
+        Abbreviation: {abbreviation}
+        -----------------------------------------
+        {minutes_context}
+        =========================================
+        """}]
 
         response = await queryGPT(query_message, request_timeout=5)
-
         return response.strip().rstrip('.')
     
 
