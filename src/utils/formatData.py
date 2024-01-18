@@ -115,7 +115,7 @@ def formatPreSummaryMinutes(topics: list, topic_title: str) -> str:
 
     combined_minutes = "\n".join(sentences_texts)
     if topic_title:
-        combined_minutes = f"Topic Title: {topic_title}\n=======nTopic Minutes: {combined_minutes}\n======="
+        combined_minutes = f"Topic Title: {topic_title}\n=======\nTopic Minutes: {combined_minutes}\n======="
     
     print(combined_minutes)
     return combined_minutes
