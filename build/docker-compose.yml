@@ -9,6 +9,7 @@ services:
       volumes:
         - ../src:/satiscribble-ai/src        
         - ../tests:/satiscribble-ai/tests
+        - ../notebooks:/satiscribble-ai/notebooks
       ports:
         - ${AI_HOST_PORT}:${AI_SERVICE_PORT}
       env_file:
